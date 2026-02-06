@@ -1,0 +1,19 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  background-color: #ffffff;
+  color: #1c1f23;
+}
+:root {
+  --granuler-gradient: linear-gradient(
+    90deg,
+    #2f6fed 0%,
+    #6a5cff 50%,
+    #8f6bff 100%
+  );
+}

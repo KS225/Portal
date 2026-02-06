@@ -1,0 +1,158 @@
+:root {
+  --granuler-gradient: linear-gradient(
+    90deg,
+    #2f6fed 0%,
+    #6a5cff 50%,
+    #8f6bff 100%
+  );
+}
+
+/* Page container */
+.login-container {
+  max-width: 520px;
+  margin: 100px auto;
+  padding: 0 16px;
+}
+
+/* Login card – POP effect */
+.login-inner {
+  background-color: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #e6e9ee;
+  padding: 56px 48px;
+  position: relative;
+
+  /* POP OUT */
+  box-shadow:
+    0 10px 25px rgba(28, 31, 35, 0.08),
+    0 2px 6px rgba(28, 31, 35, 0.04);
+}
+
+/* Subtle gradient accent (very Granuler-like) */
+.login-inner::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 4px;
+  width: 100%;
+  background: var(--granuler-gradient);
+  border-radius: 6px 6px 0 0;
+}
+
+/* Header */
+.login-header {
+  margin-bottom: 32px;
+}
+
+/* Role switch */
+.login-switch {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+.login-switch button {
+  padding: 8px 24px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 999px;
+  border: 1px solid #e6e9ee;
+  background: transparent;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-switch button:hover {
+  background: var(--granuler-gradient);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.login-switch button.active {
+  background: var(--granuler-gradient);
+  color: #ffffff;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+/* Divider */
+.login-divider {
+  height: 1px;
+  background-color: #e6e9ee;
+  margin-top: 22px;
+}
+
+/* Heading */
+.login-inner h2 {
+  font-size: 22px;
+  font-weight: 500;
+  color: #1c1f23;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+/* Form */
+.login-inner form {
+  display: grid;
+  row-gap: 16px;
+}
+
+/* Inputs */
+.login-inner input {
+  height: 44px;
+  padding: 0 12px;
+  font-size: 14px;
+  border: 1px solid #cfd6df;
+  border-radius: 2px;
+}
+
+.login-inner input:focus {
+  outline: none;
+  border-color: #2f6fed;
+}
+
+/* Submit button */
+.login-inner button[type="submit"] {
+  margin-top: 26px;
+  height: 46px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: #ffffff;
+  background: var(--granuler-gradient);
+  border: none;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.login-inner button[type="submit"]:hover {
+  filter: brightness(0.95);
+}
+
+/* Footer */
+.login-footer {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.login-footer a {
+  margin-left: 6px;
+  color: #2f6fed;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-footer a:hover {
+  text-decoration: underline;
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .login-inner {
+    padding: 40px 24px;
+  }
+}
