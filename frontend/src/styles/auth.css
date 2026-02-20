@@ -137,3 +137,36 @@
     padding: 40px 24px;
   }
 }
+
+.strength {
+  margin-top: 5px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.strength.weak {
+  color: red;
+}
+
+.strength.medium {
+  color: orange;
+}
+
+.strength.strong {
+  color: green;
+}
+
+.cin-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.info-icon {
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.info-icon:hover {
+  color: #007bff;
+}

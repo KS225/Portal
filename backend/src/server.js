@@ -3,18 +3,26 @@ import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
+import path from "path";
 
-dotenv.config();
+// Load .env from parent folder
+dotenv.config({ path: path.resolve("../.env") });
 
 const app = express();
 
-app.use(cors());
+// ✅ CORS: allow frontend on localhost:3000
+app.use(cors({ origin: "http://localhost:3000" }));
+
+// Body parser
 app.use(express.json());
 
-connectDB(); // 👈 MongoDB connect
+// Connect MongoDB
+connectDB();
 
+// Routes
 app.use("/api/auth", authRoutes);
 
+// Start server
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
 });
