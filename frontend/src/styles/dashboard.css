@@ -1,0 +1,90 @@
+.dashboard-wrapper {
+  max-width: 1000px;
+  margin: 120px auto;
+  padding: 0 20px;
+}
+
+.dashboard-wrapper h2 {
+  text-align: center;
+  margin-bottom: 40px;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+/* GRID 2x2 */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+}
+
+/* CARD STYLE */
+.dashboard-box {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 50px 30px;
+  text-align: center;
+  cursor: pointer;
+
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+/* POP OUT EFFECT */
+.dashboard-box:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* ICON */
+.icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+/* TITLE */
+.dashboard-box h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+/* DESCRIPTION */
+.dashboard-box p {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logout-container {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  padding: 20px 60px 0 60px;
+  box-sizing: border-box;
+}
+
+.logout-btn {
+  background: #fa7300;
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.logout-btn:hover {
+  opacity: 0.9;
+}

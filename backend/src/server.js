@@ -4,6 +4,7 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import path from "path";
+import userRoutes from "./routes/userRoutes.js";
 
 // Load .env from parent folder
 dotenv.config({ path: path.resolve("../.env") });
@@ -21,6 +22,7 @@ connectDB();
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
 
 // Start server
 app.listen(process.env.PORT, () => {

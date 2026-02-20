@@ -1,9 +1,9 @@
 :root {
   --granuler-gradient: linear-gradient(
     90deg,
-    #2f6fed 0%,
-    #6a5cff 50%,
-    #8f6bff 100%
+    #e85d00 0%,    
+    #fa7300 50%,
+    #ffb703 100%    
   );
 }
 

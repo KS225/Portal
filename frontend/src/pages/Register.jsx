@@ -1,15 +1,14 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/auth.css";
 
 function Register() {
   const navigate = useNavigate();
-  const today = new Date().toISOString().split("T")[0];
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-const [passwordStrength, setPasswordStrength] = useState("");
+  const [passwordStrength, setPasswordStrength] = useState("");
+
   const [formData, setFormData] = useState({
     companyName: "",
     registrationNumber: "",
@@ -18,9 +17,6 @@ const [passwordStrength, setPasswordStrength] = useState("");
     designation: "",
     email: "",
     phone: "",
-    certificationType: "",
-    startDate: "",
-    endDate: "",
     password: "",
     confirmPassword: ""
   });
@@ -46,84 +42,84 @@ const [passwordStrength, setPasswordStrength] = useState("");
   };
 
   const cinRegex = /^[LU]{1}[0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/;
+
   const passwordRegex =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=])[A-Za-z\d@$!%*?&#^()_\-+=]{8,16}$/;
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=])[A-Za-z\d@$!%*?&#^()_\-+=]{8,16}$/;
 
   const checkPasswordStrength = (password) => {
-  let strength = 0;
+    let strength = 0;
 
-  if (password.length >= 8) strength++;
-  if (/[a-z]/.test(password)) strength++;
-  if (/[A-Z]/.test(password)) strength++;
-  if (/\d/.test(password)) strength++;
-  if (/[@$!%*?&#^()_\-+=]/.test(password)) strength++;
+    if (password.length >= 8) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/\d/.test(password)) strength++;
+    if (/[@$!%*?&#^()_\-+=]/.test(password)) strength++;
 
-  if (strength <= 2) return "Weak";
-  if (strength === 3 || strength === 4) return "Medium";
-  if (strength === 5) return "Strong";
-};
-const handleSubmit = async (e) => {
-  e.preventDefault();
+    if (strength <= 2) return "Weak";
+    if (strength === 3 || strength === 4) return "Medium";
+    if (strength === 5) return "Strong";
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
     const cin = formData.registrationNumber.trim();
 
-if (!cinRegex.test(cin)) {
-  alert(
-    "Invalid CIN format.\nExample: U12345MH2020PLC012345"
-  );
-  return;
-}
-  // 1️⃣ Password match check
-  if (formData.password !== formData.confirmPassword) {
-    alert("Passwords do not match");
-    return;
-  }
-
-  // 2️⃣ Strong password validation
-  if (!passwordRegex.test(formData.password)) {
-    alert(
-      "Password must be 8-16 characters long and include:\n" +
-      "- At least 1 uppercase letter\n" +
-      "- At least 1 lowercase letter\n" +
-      "- At least 1 number\n" +
-      "- At least 1 special character"
-    );
-    return;
-  }
-
-  // 3️⃣ Prevent password containing email
-  if (formData.password.toLowerCase().includes(formData.email.toLowerCase())) {
-    alert("Password should not contain your email address.");
-    return;
-  }
-
-  try {
-    const res = await fetch("http://localhost:5000/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(formData)
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.message || "Registration failed");
+    if (!cinRegex.test(cin)) {
+      alert("Invalid CIN format.\nExample: U12345MH2020PLC012345");
       return;
     }
 
-    localStorage.setItem("pendingEmail", formData.email);
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
 
-    alert("OTP sent to your registered email");
-    navigate("/verify-otp");
-  } catch (error) {
-    console.error("Registration error:", error);
-    alert("Server error. Please try again later.");
-  }
-};
+    if (!passwordRegex.test(formData.password)) {
+      alert(
+        "Password must be 8-16 characters long and include:\n" +
+          "- At least 1 uppercase letter\n" +
+          "- At least 1 lowercase letter\n" +
+          "- At least 1 number\n" +
+          "- At least 1 special character"
+      );
+      return;
+    }
 
+    if (
+      formData.password
+        .toLowerCase()
+        .includes(formData.email.toLowerCase())
+    ) {
+      alert("Password should not contain your email address.");
+      return;
+    }
 
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ ...formData, registrationNumber: cin })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Registration failed");
+        return;
+      }
+
+      localStorage.setItem("pendingEmail", formData.email);
+
+      alert("OTP sent to your registered email");
+      navigate("/verify-otp");
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert("Server error. Please try again later.");
+    }
+  };
 
   return (
     <div className="auth-container">
@@ -136,20 +132,17 @@ if (!cinRegex.test(cin)) {
             name="companyName"
             placeholder="Enter company legal name"
             value={formData.companyName}
-            onChange={(e) => {
-  handleChange(e);
-  setPasswordStrength(checkPasswordStrength(e.target.value));
-}}
+            onChange={handleChange}
             required
           />
 
           <label className="cin-label">
-  Registration Number (CIN)
-  <span
-    className="info-icon"
-    title={`CIN Format (21 Characters):
+            Registration Number (CIN)
+            <span
+              className="info-icon"
+              title={`CIN Format (21 Characters):
 
-1st: L or U (Listed/Unlisted)
+1st: L or U (Listed/Unlisted) 
 Next 5: Industry Code
 Next 2: State Code (MH, DL, etc.)
 Next 4: Year of Incorporation
@@ -157,19 +150,20 @@ Next 3: Company Type (PLC/PTC)
 Last 6: ROC Registration Number
 
 Example: U12345MH2020PLC012345`}
-  >
-    ℹ️
-  </span>
-</label>
+            >
+              ℹ️
+            </span>
+          </label>
+
           <input
             name="registrationNumber"
             placeholder="Company registration / CIN number"
             value={formData.registrationNumber}
             onChange={(e) => {
-                const value = e.target.value.toUpperCase();
-                setFormData({ ...formData, registrationNumber: value });
-              }}
-              maxLength={21}
+              const value = e.target.value.toUpperCase();
+              setFormData({ ...formData, registrationNumber: value });
+            }}
+            maxLength={21}
             required
           />
 
@@ -217,33 +211,6 @@ Example: U12345MH2020PLC012345`}
             maxLength={10}
           />
 
-          <label>Certification Type</label>
-          <input
-            name="certificationType"
-            placeholder="Requested certification"
-            value={formData.certificationType}
-            onChange={handleChange}
-            required
-          />
-
-          <label>Certification Period</label>
-          <input
-            type="date"
-            name="startDate"
-            value={formData.startDate}
-            onChange={handleChange}
-            min={today}
-            required
-          />
-          <input
-            type="date"
-            name="endDate"
-            value={formData.endDate}
-            onChange={handleChange}
-            min={formData.startDate || today}
-            required
-          />
-
           <label>Password</label>
           <div className="password-field">
             <input
@@ -253,7 +220,9 @@ Example: U12345MH2020PLC012345`}
               value={formData.password}
               onChange={(e) => {
                 handleChange(e);
-                setPasswordStrength(checkPasswordStrength(e.target.value));
+                setPasswordStrength(
+                  checkPasswordStrength(e.target.value)
+                );
               }}
               minLength={8}
               maxLength={16}
@@ -263,11 +232,13 @@ Example: U12345MH2020PLC012345`}
               {showPassword ? "Hide" : "Show"}
             </span>
           </div>
-              {formData.password && (
-                <div className={`strength ${passwordStrength?.toLowerCase()}`}>
-                  Password Strength: {passwordStrength}
-                </div>
-              )}
+
+          {formData.password && (
+            <div className={`strength ${passwordStrength?.toLowerCase()}`}>
+              Password Strength: {passwordStrength}
+            </div>
+          )}
+
           <label>Confirm Password</label>
           <div className="password-field">
             <input

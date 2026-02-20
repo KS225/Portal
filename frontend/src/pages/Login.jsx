@@ -5,25 +5,47 @@ import "../styles/login.css";
 function Login() {
   const [loginType, setLoginType] = useState("user"); // user | admin
   const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (loginType === "admin") {
-      console.log("Admin Login:", { username, password });
-      localStorage.setItem("role", "admin");
-      navigate("/admin/dashboard");
-    } else {
-      console.log("Company Login:", { email, password });
-      localStorage.setItem("role", "user");
-      localStorage.setItem("status", "pending");
-      navigate("/dashboard");
+  if (loginType === "admin") {
+    // For now keep admin static until we build admin auth
+    localStorage.setItem("role", "admin");
+    navigate("/admin/dashboard");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:5000/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Login failed");
+      return;
     }
-  };
+
+    // STORE TOKEN HERE
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("role", "user");
+
+    navigate("/dashboard");
+
+  } catch (error) {
+    console.error(error);
+    alert("Server error");
+  }
+};
 
   return (
     <div className="login-container">
@@ -63,7 +85,7 @@ function Login() {
             <input
               type="text"
               placeholder="Admin Username"
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           ) : (

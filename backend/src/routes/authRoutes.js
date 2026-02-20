@@ -4,6 +4,7 @@ import express from "express";
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import { sendOTPEmail } from "../utils/mailer.js";
+import jwt from "jsonwebtoken";
 
 // ✅ Declare router
 const router = express.Router();
@@ -19,9 +20,6 @@ router.post("/register", async (req, res) => {
       designation, 
       email, 
       phone, 
-      certificationType, 
-      startDate, 
-      endDate, 
       password 
     } = req.body;
 
@@ -44,16 +42,19 @@ if (!cinRegex.test(registrationNumber)) {
     // ✅ Validate required fields
     if (
       !companyName || !registrationNumber || !industry || !contactPerson ||
-      !designation || !email || !phone || !certificationType ||
-      !startDate || !endDate || !password
+      !designation || !email || !phone ||  !password
     ) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     // ✅ Validate registrationNumber is numeric
-    if (isNaN(Number(registrationNumber))) {
-      return res.status(400).json({ message: "Registration number must be numeric" });
-    }
+    
+
+if (!cinRegex.test(registrationNumber)) {
+  return res.status(400).json({
+    message: "Invalid CIN format"
+  });
+}
 
     // Check if user exists
     const existingUser = await User.findOne({ email });
@@ -69,15 +70,12 @@ if (!cinRegex.test(registrationNumber)) {
     // Create new user
     const newUser = new User({
       companyName,
-      registrationNumber: Number(registrationNumber), // store as number
+      registrationNumber,
       industry,
       contactPerson,
       designation,
       email,
       phone,
-      certificationType,
-      startDate,
-      endDate,
       password: hashedPassword,
       otp,
       otpExpiry,
@@ -90,8 +88,10 @@ if (!cinRegex.test(registrationNumber)) {
 
     res.status(201).json({ message: "OTP sent to email" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.error("🔥 LOGIN ERROR FULL STACK:");
+  console.error(err);
+  console.error("JWT SECRET:", process.env.JWT_SECRET);
+  res.status(500).json({ message: err.message });
   }
 });
 
@@ -123,6 +123,38 @@ router.post("/verify-otp", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    if (!user.isVerified) {
+      return res.status(400).json({ message: "Please verify your account first" });
+    }
+
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.json({ token });
+
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 // ✅ Export router
 export default router;
