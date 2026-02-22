@@ -6,12 +6,12 @@ function VerifyOtp() {
   const [otp, setOtp] = useState("");
   const navigate = useNavigate();
 
-  const email = localStorage.getItem("pendingEmail");
+  const tempToken = localStorage.getItem("tempToken");
 
   const handleVerify = async (e) => {
     e.preventDefault();
 
-    if (!email) {
+    if (!tempToken) {
       alert("Session expired. Please register again.");
       navigate("/register");
       return;
@@ -23,7 +23,7 @@ function VerifyOtp() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ email, otp })
+        body: JSON.stringify({ otp, tempToken })
       });
 
       const data = await res.json();
@@ -33,11 +33,12 @@ function VerifyOtp() {
         return;
       }
 
-      // Cleanup
-      localStorage.removeItem("pendingEmail");
+      // Cleanup temp token
+      localStorage.removeItem("tempToken");
 
       alert("Account verified successfully!");
       navigate("/login");
+
     } catch (error) {
       console.error("OTP verify error:", error);
       alert("Server error. Try again later.");

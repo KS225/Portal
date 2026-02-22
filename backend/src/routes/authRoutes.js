@@ -41,86 +41,91 @@ if (!cinRegex.test(registrationNumber)) {
     }
     // ✅ Validate required fields
     if (
-      !companyName || !registrationNumber || !industry || !contactPerson ||
-      !designation || !email || !phone ||  !password
+      !companyName ||
+      !registrationNumber ||
+      !industry ||
+      !contactPerson ||
+      !designation ||
+      !email ||
+      !phone ||
+      !password
     ) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // ✅ Validate registrationNumber is numeric
-    
-
-if (!cinRegex.test(registrationNumber)) {
-  return res.status(400).json({
-    message: "Invalid CIN format"
-  });
-}
-
-    // Check if user exists
+    // 🔥 Check only verified users
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: "Email already registered" });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000);
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Create new user
-    const newUser = new User({
-      companyName,
-      registrationNumber,
-      industry,
-      contactPerson,
-      designation,
-      email,
-      phone,
-      password: hashedPassword,
-      otp,
-      otpExpiry,
-    });
+    // 🔥 Create temporary token (valid 10 mins)
+    const tempToken = jwt.sign(
+      {
+        companyName,
+        registrationNumber,
+        industry,
+        contactPerson,
+        designation,
+        email,
+        phone,
+        password: hashedPassword,
+        otp,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "10m" }
+    );
 
-    await newUser.save();
-
-    // Send OTP email
     await sendOTPEmail(email, otp);
 
-    res.status(201).json({ message: "OTP sent to email" });
+    res.status(201).json({
+      message: "OTP sent to email",
+      tempToken,
+    });
   } catch (err) {
-    console.error("🔥 LOGIN ERROR FULL STACK:");
-  console.error(err);
-  console.error("JWT SECRET:", process.env.JWT_SECRET);
-  res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
 // ===== VERIFY OTP ROUTE =====
 router.post("/verify-otp", async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    const { otp, tempToken } = req.body;
 
-    // Find user
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: "User not found" });
+    const decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
 
-    if (user.isVerified) return res.status(400).json({ message: "User already verified" });
+    if (decoded.otp !== Number(otp)) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
 
-    if (user.otp !== Number(otp)) return res.status(400).json({ message: "Invalid OTP" });
+    const existingUser = await User.findOne({ email: decoded.email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
 
-    if (user.otpExpiry < new Date()) return res.status(400).json({ message: "OTP expired" });
+    const newUser = new User({
+      companyName: decoded.companyName,
+      registrationNumber: decoded.registrationNumber,
+      industry: decoded.industry,
+      contactPerson: decoded.contactPerson,
+      designation: decoded.designation,
+      email: decoded.email,
+      phone: decoded.phone,
+      password: decoded.password,
+      isVerified: true,
+    });
 
-    // Mark user as verified
-    user.isVerified = true;
-    user.otp = undefined;
-    user.otpExpiry = undefined;
-
-    await user.save();
+    await newUser.save();
 
     res.status(200).json({ message: "Account verified successfully" });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    res.status(400).json({ message: "OTP expired or invalid" });
   }
 });
 
@@ -142,19 +147,82 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Please verify your account first" });
     }
 
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+const token = jwt.sign(
+  {
+    id: user._id,
+    role: user.role,   // 🔥 add role to token
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: "1d" }
+);
 
-    res.json({ token });
+res.json({
+  token,
+  user: {
+    id: user._id,
+    role: user.role,
+    email: user.email,
+  },
+});
 
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 });
 
+// ===== FORGOT PASSWORD =====
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    // Generate reset token (JWT valid for 15 mins)
+    const resetToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    // You can send this link via email
+    const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+
+    console.log("RESET LINK:", resetLink);
+
+    res.json({ message: "Reset link generated", resetLink });
+
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+// ===== RESET PASSWORD =====
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+
+    await user.save();
+
+    res.json({ message: "Password reset successful" });
+
+  } catch (err) {
+    res.status(400).json({ message: "Invalid or expired token" });
+  }
+});
 
 // ✅ Export router
 export default router;

@@ -1,6 +1,24 @@
+import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import "../styles/navbar.css";
 
 function Navbar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, [location]); // 🔥 re-check whenever route changes
+
+  const handleLogout = () => {
+    localStorage.clear();
+    setIsLoggedIn(false);
+    navigate("/login");
+  };
+
   return (
     <header className="granuler-navbar">
       <div className="nav-container">
@@ -11,11 +29,17 @@ function Navbar() {
         </div>
 
         <nav className="nav-links">
-          <a href="https://cioverified.co">Home</a>
-          <a href="https://granuler.com/services">Services</a>
-          <a href="https://granuler.com/certification">Certification</a>
-          <a href="https://granuler.com/about">About</a>
-          <a href="https://granuler.com/contact">Contact</a>
+          <a href="https://cioverified.com">Home</a>
+           <a href="https://cioverified.com/about">About Us</a>
+          <a href="https://cioverified.com/certified-companies">Certified Companies</a>
+          <a href="https://cioverified.com/blogs">Blogs</a>
+          <a href="https://cioverified.com/contact-us">Contact Us</a>
+
+          {isLoggedIn && (
+            <button className="nav-logout-btn" onClick={handleLogout}>
+              Logout
+            </button>
+          )}
         </nav>
       </div>
     </header>

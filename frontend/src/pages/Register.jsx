@@ -111,7 +111,7 @@ function Register() {
         return;
       }
 
-      localStorage.setItem("pendingEmail", formData.email);
+     localStorage.setItem("tempToken", data.tempToken);
 
       alert("OTP sent to your registered email");
       navigate("/verify-otp");

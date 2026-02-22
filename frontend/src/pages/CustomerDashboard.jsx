@@ -3,25 +3,13 @@ import "../styles/dashboard.css";
 
 function CompanyDashboard() {
   const navigate = useNavigate();
-const handleLogout = () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("role");
-  navigate("/login");
-};
+  
   return (
-    
-     <><div className="logout-container">
-      <button className="logout-btn" onClick={handleLogout}>
-        Logout
-      </button>
-    </div><div className="dashboard-wrapper">
+   
+     <div className="dashboard-wrapper">
         <h2>Company Dashboard</h2>
         <div className="dashboard-grid">
-
-          <div
-            className="dashboard-box"
-            onClick={() => navigate("/profile")}
-          >
+          <div className="dashboard-box" onClick={() => navigate("/profile")}>
             <div className="icon">👤</div>
             <h3>Profile</h3>
             <p>View and update company details</p>
@@ -54,9 +42,8 @@ const handleLogout = () => {
             <p>View assigned auditor details</p>
           </div>
         </div>
-      </div></>
-
-    
+      </div>
+   
   );
 }
 

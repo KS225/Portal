@@ -1,0 +1,86 @@
+.cert-container {
+  display: flex;
+  justify-content: center;
+  padding: 100px 20px 60px 20px;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.cert-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 700px;
+  padding: 45px;
+  border-radius: 18px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
+}
+
+.cert-card h2 {
+  text-align: center;
+  margin-bottom: 35px;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.cert-card form {
+  display: flex;
+  flex-direction: column;
+}
+
+.cert-card label {
+  margin-top: 18px;
+  margin-bottom: 6px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.cert-card input,
+.cert-card select,
+.cert-card textarea {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.cert-card input:focus,
+.cert-card select:focus,
+.cert-card textarea:focus {
+  outline: none;
+  border-color: #fa7300;
+  box-shadow: 0 0 0 2px rgba(250, 115, 0, 0.15);
+}
+
+.cert-card textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.cert-card button {
+  margin-top: 30px;
+  padding: 12px;
+  background: #fa7300;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.cert-card button:hover {
+  background: #e96400;
+}
+
+.declaration {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.declaration input {
+  width: auto;
+}
