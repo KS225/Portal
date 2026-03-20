@@ -72,3 +72,10 @@
 .logout-btn:hover {
   opacity: 0.9;
 }
+.btn-download {
+  background: green;
+  color: white;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+}

@@ -192,18 +192,17 @@ function AdminManageApplications() {
   {/* ✅ Auditor finished → admin can act */}
   {app.status === "Under Audit" && (
     <>
-      <button onClick={() => handleApprove(app._id)}>Approve</button>
+      <button onClick={() => handleApprove(app._id)}>Final Approval </button>
       <button onClick={() => handleReject(app._id)}>Reject</button>
     </>
   )}
 
   {/* ✅ Approved → still allow actions if you want */}
   {app.status === "Approved" && (
-    <>
-      <button onClick={() => handleReject(app._id)}>Reject</button>
-      <button onClick={() => handleAssign(app._id)}>Reassign Auditor</button>
-    </>
-  )}
+  <p style={{ color: "green", fontWeight: "bold" }}>
+    ✔ Application Approved (Locked)
+  </p>
+)}
 
 </div>
 

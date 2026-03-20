@@ -75,6 +75,10 @@ incidentManagement:String,
     ref:"User",
     default:null
   },
+  certificateUrl: {
+  type: String,
+  default: ""
+},
 
   status:{
     type:String,
@@ -88,6 +92,8 @@ incidentManagement:String,
     ],
     default:"Pending"
   }
+
+  
 
 },
 {timestamps:true}

@@ -18,6 +18,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import AdminManageApplications from "./pages/AdminManageApplications"
 import AuditorDashboard from "./pages/AuditorDashboard";
 import CompanyAuditPage from "./pages/CompanyAuditPage";
+import CertificatesPage from "./pages/CertificatesPage";
 function App() {
   return (
     <BrowserRouter>
@@ -46,6 +47,7 @@ function App() {
 <Route path="/forgot-password" element={<ForgotPassword />} />
  <Route path="/admin/applications" element={<AdminManageApplications />} />     
 <Route path="/dashboard/audit" element={<CompanyAuditPage/>}/>
+<Route path="/dashboard/certificates" element={<CertificatesPage/>}/>
       </Routes>
     </BrowserRouter>
   );
