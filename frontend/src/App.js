@@ -16,7 +16,8 @@ import AdminAuditors from "./pages/AdminAuditors";
 import AdminCompanies from "./pages/AdminCompanies";
 import ForgotPassword from "./pages/ForgotPassword";
 import AdminManageApplications from "./pages/AdminManageApplications"
-// import AuditorDashboard from "./pages/AuditorDashboard";
+import AuditorDashboard from "./pages/AuditorDashboard";
+import CompanyAuditPage from "./pages/CompanyAuditPage";
 function App() {
   return (
     <BrowserRouter>
@@ -41,9 +42,10 @@ function App() {
 <Route path="/admin/invitations" element={<InvitationHistory />} />
 <Route path="/admin/auditors" element={<AdminAuditors />} />
 <Route path="/admin/companies" element={<AdminCompanies />} />
-{/* <Route path="/auditor/dashboard" element={<AuditorDashboard />} /> */}
+<Route path="/auditor-dashboard" element={<AuditorDashboard />} />
 <Route path="/forgot-password" element={<ForgotPassword />} />
  <Route path="/admin/applications" element={<AdminManageApplications />} />     
+<Route path="/dashboard/audit" element={<CompanyAuditPage/>}/>
       </Routes>
     </BrowserRouter>
   );

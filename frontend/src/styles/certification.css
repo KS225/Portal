@@ -1,86 +1,141 @@
-.cert-container {
-  display: flex;
-  justify-content: center;
-  padding: 100px 20px 60px 20px;
-  background: #f8fafc;
-  min-height: 100vh;
+input,
+select,
+textarea{
+width:100%;
+padding:10px;
+border:1px solid #ddd;
+border-radius:6px;
+margin-top:5px;
+font-size:14px;
 }
 
-.cert-card {
-  background: #ffffff;
-  width: 100%;
-  max-width: 700px;
-  padding: 45px;
-  border-radius: 18px;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
+.company-grid label{
+display:block;
+font-weight:500;
+margin-bottom:4px;
 }
 
-.cert-card h2 {
-  text-align: center;
-  margin-bottom: 35px;
-  font-size: 26px;
-  font-weight: 600;
+.company-grid{
+display:grid;
+grid-template-columns:1fr;
+gap:20px;
+margin-top:20px;
 }
 
-.cert-card form {
-  display: flex;
-  flex-direction: column;
+.company-grid textarea{
+grid-column:span 2;
+}
+.cert-container{
+display:flex;
+justify-content:center;
+padding:50px;
+background:#f7f7f7;
+min-height:100vh;
 }
 
-.cert-card label {
-  margin-top: 18px;
-  margin-bottom: 6px;
-  font-weight: 500;
-  font-size: 14px;
+.cert-card{
+background:white;
+padding:40px;
+border-radius:12px;
+width:850px;
+box-shadow:0 10px 30px rgba(0,0,0,0.08);
 }
 
-.cert-card input,
-.cert-card select,
-.cert-card textarea {
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  font-size: 14px;
-  transition: all 0.2s ease;
+.cert-card h2{
+text-align:center;
+margin-bottom:30px;
+color:#ff6a00;
 }
 
-.cert-card input:focus,
-.cert-card select:focus,
-.cert-card textarea:focus {
-  outline: none;
-  border-color: #fa7300;
-  box-shadow: 0 0 0 2px rgba(250, 115, 0, 0.15);
+.cert-card h3{
+margin-top:20px;
+margin-bottom:20px;
+color:#ff6a00;
+border-bottom:2px solid #ffe2cc;
+padding-bottom:5px;
 }
 
-.cert-card textarea {
-  min-height: 90px;
-  resize: vertical;
+.progress-tracker{
+display:flex;
+justify-content:space-between;
+margin-bottom:30px;
 }
 
-.cert-card button {
-  margin-top: 30px;
-  padding: 12px;
-  background: #fa7300;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.3s;
+.tracker-step{
+display:flex;
+flex-direction:column;
+align-items:center;
+font-size:12px;
+color:#bbb;
 }
 
-.cert-card button:hover {
-  background: #e96400;
+.tracker-step span{
+width:30px;
+height:30px;
+border-radius:50%;
+border:2px solid #ddd;
+display:flex;
+align-items:center;
+justify-content:center;
+margin-bottom:5px;
 }
 
-.declaration {
-  display: flex;
-  align-items: center;
-  margin-top: 20px;
-  gap: 10px;
-  font-size: 13px;
+.tracker-step.active span{
+background:#ff6a00;
+border-color:#ff6a00;
+color:white;
 }
 
-.declaration input {
-  width: auto;
+.tracker-step.active{
+color:#ff6a00;
+}
+
+.question-row{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:18px;
+padding:8px 0;
+border-bottom:1px solid #f0f0f0;
+}
+
+.question-row label{
+font-weight:500;
+width:60%;
+}
+
+.options{
+display:flex;
+gap:25px;
+}
+
+.options label{
+display:flex;
+align-items:center;
+gap:6px;
+font-weight:400;
+}
+
+.options input{
+accent-color:#ff6a00;
+}
+
+.step-buttons{
+display:flex;
+justify-content:space-between;
+margin-top:30px;
+}
+
+button{
+background:#ff6a00;
+color:white;
+border:none;
+padding:10px 20px;
+border-radius:6px;
+cursor:pointer;
+font-weight:500;
+}
+
+button:hover{
+background:#e65c00;
 }

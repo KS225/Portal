@@ -3,6 +3,7 @@ import "../styles/profile.css";
 
 function ProfilePage() {
   const [company, setCompany] = useState(null);
+  const [originalCompany, setOriginalCompany] = useState(null);
   const [editing, setEditing] = useState(false);
 
   useEffect(() => {
@@ -17,6 +18,7 @@ function ProfilePage() {
 
       const data = await res.json();
       setCompany(data);
+      setOriginalCompany(data); // store original copy
     };
 
     fetchProfile();
@@ -42,8 +44,14 @@ function ProfilePage() {
       }),
     });
 
+    setOriginalCompany(company); // update original after saving
     setEditing(false);
     alert("Profile updated successfully");
+  };
+
+  const handleCancel = () => {
+    setCompany(originalCompany); // restore old values
+    setEditing(false);
   };
 
   if (!company) return <p>Loading...</p>;
@@ -87,9 +95,16 @@ function ProfilePage() {
         />
 
         {!editing ? (
-          <button onClick={() => setEditing(true)}>Edit Profile</button>
+          <button onClick={() => setEditing(true)}>
+            Edit Profile
+          </button>
         ) : (
-          <button onClick={handleSave}>Save Changes</button>
+          <div className="button-group">
+            <button onClick={handleSave}>Save Changes</button>
+            <button className="cancel-btn" onClick={handleCancel}>
+              Cancel
+            </button>
+          </div>
         )}
       </div>
     </div>

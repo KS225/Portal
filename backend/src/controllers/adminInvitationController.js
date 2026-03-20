@@ -80,16 +80,35 @@ if (existingInvitation) {
     // Send email
     const inviteLink = `http://localhost:3000/auditor/setup?token=${token}`;
 
-    const message = `
-You have been invited as an Auditor.
+   const message = `
+<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+  <h2 style="color: #1f2d3d;">Auditor Invitation</h2>
 
-Username: ${username}
+  <p>Dear <strong>${username}</strong>,</p>
 
-Click the link below to set your password:
+  <p>You have been invited to join the <strong>Granuler Certification Platform</strong> as an Auditor.</p>
 
-${inviteLink}
+  <p>Please click the button below to set your password and activate your account:</p>
 
-This link expires in 48 hours.
+  <p style="margin: 20px 0;">
+    <a href="${inviteLink}" 
+       style="background-color: #3f51b5; 
+              color: #ffffff; 
+              padding: 12px 20px; 
+              text-decoration: none; 
+              border-radius: 6px;
+              display: inline-block;">
+       Set Your Password
+    </a>
+  </p>
+
+  <p>This link will expire in 48 hours.</p>
+
+  <p>If you did not expect this invitation, you may safely ignore this email.</p>
+
+  <br/>
+  <p>Best Regards,<br/>Granuler Team</p>
+</div>
 `;
 
     await sendOTPEmail(email, message); // reuse mailer function

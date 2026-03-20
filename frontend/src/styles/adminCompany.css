@@ -25,35 +25,41 @@
   border-top: 1px solid #eee;
 }
 
-/* Status Badge */
-.status-badge {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  margin-top: 10px;
-}
 
 /* Status Colors */
+.status-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  margin-top: 10px;
+  font-size: 13px;
+}
+
 .status-badge.pending {
-  background-color: #facc15;
-  color: #000;
+  background-color: #fff3cd;
+  color: #856404;
 }
 
 .status-badge.approved {
-  background-color: #16a34a;
-  color: white;
+  background-color: #d4edda;
+  color: #155724;
 }
 
 .status-badge.rejected {
-  background-color: #dc2626;
-  color: white;
+  background-color: #f8d7da;
+  color: #721c24;
 }
 
 .status-badge.auditor-assigned {
-  background-color: #2563eb;
-  color: white;
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.rejection-reason {
+  color: #dc2626;
+  margin-top: 8px;
+  font-weight: 500;
 }
 
 /* Rejection Text */
@@ -104,4 +110,9 @@
 
 .btn-assign:hover {
   background-color: #1d4ed8;
+}
+
+.disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }

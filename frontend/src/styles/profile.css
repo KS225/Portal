@@ -44,11 +44,24 @@
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
-  background: var(--granuler-gradient);
+  background: orange;
   color: white;
   transition: 0.2s ease;
 }
 
 .profile-card button:hover {
   opacity: 0.9;
+}
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+
+.cancel-btn {
+  background-color: #ccc;
+  color: black;
+}
+
+.cancel-btn:hover {
+  background-color: #aaa;
 }

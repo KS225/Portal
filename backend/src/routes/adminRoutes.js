@@ -18,6 +18,20 @@ router.put("/update-profile", authenticateUser, adminOnly, updateAdminProfile);
 router.put("/change-password", authenticateUser, adminOnly, changeAdminPassword);
 router.get("/dashboard-stats", authenticateUser, adminOnly, getDashboardStats);
 router.post("/invite-auditor", authenticateUser, adminOnly, inviteAuditor);
+router.delete(
+  "/company/:id",
+  authenticateUser,
+  adminOnly,
+  async (req, res) => {
+    try {
+      await User.findByIdAndDelete(req.params.id);
+      res.json({ message: "Company deleted successfully" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
 router.get("/invitations", authenticateUser, adminOnly, async (req, res) => {
   const invitations = await AuditorInvitation.find().sort({ createdAt: -1 });
   res.json(invitations);

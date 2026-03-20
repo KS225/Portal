@@ -67,8 +67,8 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
         return;
       }
 
-      alert("Account created successfully. Please login.");
-      navigate("/login");
+      alert("Account created successfully.");
+      navigate("/auditor-dashboard");
 
     } catch (err) {
       setError("Server error");
@@ -100,7 +100,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     value={password}
     onChange={(e) => setPassword(e.target.value)}
     required
-    style={{ width: "100%", paddingRight: "60px" }}
+    style={{ width: "95%"}}
   />
   <span
     onClick={() => setShowPassword(!showPassword)}

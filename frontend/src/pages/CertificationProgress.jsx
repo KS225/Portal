@@ -20,14 +20,22 @@ function CertificationProgress() {
     switch (status) {
       case "Pending":
         return 1;
-      case "Approved":
-        return 2;
+
       case "Auditor Assigned":
+        return 2;
+
+      case "Under Audit": // auditor approved
         return 3;
-      case "Completed":
+
+      case "Approved": // final admin approval
         return 4;
+
+      case "Changes Requested": // auditor rejected
+        return 3;
+
       case "Rejected":
         return -1;
+
       default:
         return 0;
     }
@@ -48,42 +56,72 @@ function CertificationProgress() {
           <div key={app._id} className="progress-card">
 
             <h3>{app.businessType} Application</h3>
-            <p><strong>Submitted On:</strong> {new Date(app.createdAt).toLocaleDateString()}</p>
+            <p>
+              <strong>Submitted On:</strong>{" "}
+              {new Date(app.createdAt).toLocaleDateString()}
+            </p>
 
+            {/* ❌ ADMIN REJECT */}
             {app.status === "Rejected" ? (
               <div className="rejected-box">
-                <p><strong>Status:</strong> Rejected</p>
-                <p><strong>Reason:</strong> {app.rejectionReason}</p>
+                <p><strong>Status:</strong> Rejected by Admin</p>
+             
               </div>
             ) : (
-              <div className="timeline">
+              <>
+                {/* ✅ TIMELINE */}
+                <div className="timeline">
 
-                <div className={`step ${currentStep >= 1 ? "active" : ""}`}>
-                  <div className="circle"></div>
-                  <p>Submitted</p>
+                  <div className={`step ${currentStep >= 1 ? "active" : ""}`}>
+                    <div className="circle"></div>
+                    <p>Pending</p>
+                  </div>
+
+                  <div className={`step ${currentStep >= 2 ? "active" : ""}`}>
+                    <div className="circle"></div>
+                    <p>Auditor Assigned</p>
+                  </div>
+
+                  <div className={`step ${currentStep >= 3 ? "active" : ""}`}>
+                    <div className="circle"></div>
+                    <p>Auditor Decision</p>
+                  </div>
+
+                  <div className={`step ${currentStep >= 4 ? "active" : ""}`}>
+                    <div className="circle"></div>
+                    <p>Final Approval</p>
+                  </div>
+
                 </div>
 
-                <div className={`step ${currentStep >= 2 ? "active" : ""}`}>
-                  <div className="circle"></div>
-                  <p>Approved</p>
-                </div>
+                {/* ✅ AUDITOR DECISION */}
+                {app.auditorDecision && (
+                  <div className="audit-feedback">
+                    <p>
+                      <strong>Auditor Decision:</strong>{" "}
+                      {app.auditorDecision === "Approved"
+                        ? "Approved"
+                        : "Changes Requested"}
+                    </p>
 
-                <div className={`step ${currentStep >= 3 ? "active" : ""}`}>
-                  <div className="circle"></div>
-                  <p>Auditor Assigned</p>
-                </div>
+                    
+                  </div>
+                )}
 
-                <div className={`step ${currentStep >= 4 ? "active" : ""}`}>
-                  <div className="circle"></div>
-                  <p>Completed</p>
-                </div>
-
-              </div>
+                {/* ✅ FINAL APPROVAL */}
+                {app.status === "Approved" && (
+                  <div className="approved-box">
+                    <p>✅ Final Approval by Admin</p>
+                  </div>
+                )}
+              </>
             )}
 
+            {/* ✅ AUDITOR INFO */}
             {app.assignedAuditor && (
               <p className="auditor-info">
-                <strong>Assigned Auditor:</strong> {app.assignedAuditor.email}
+                <strong>Assigned Auditor:</strong>{" "}
+                {app.assignedAuditor.email}
               </p>
             )}
 

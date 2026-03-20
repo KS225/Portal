@@ -39,7 +39,7 @@ function Login() {
   if (data.user.role === "admin") {
   navigate("/admin/dashboard");
 } else if (data.user.role === "auditor") {
-  navigate("/auditor/dashboard");
+  navigate("/auditor-dashboard");
 } else {
   navigate("/dashboard");
 }

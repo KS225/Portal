@@ -39,7 +39,6 @@ export const verifyInvitationToken = async (req, res) => {
 };
 
 
-// ✅ Complete Auditor Registration
 export const completeAuditorRegistration = async (req, res) => {
   try {
     const { token, password } = req.body;
@@ -58,6 +57,13 @@ export const completeAuditorRegistration = async (req, res) => {
       invitation.status = "expired";
       await invitation.save();
       return res.status(400).json({ message: "Invitation expired" });
+    }
+
+    // 🔹 Check if user already exists
+    const existingUser = await User.findOne({ email: invitation.email });
+
+    if (existingUser) {
+      return res.status(400).json({ message: "Auditor already registered" });
     }
 
     // Hash password
@@ -79,7 +85,7 @@ export const completeAuditorRegistration = async (req, res) => {
     res.json({ message: "Account created successfully" });
 
   } catch (error) {
-    console.error(error);
+    console.error("Auditor registration error:", error); // 👈 shows real error
     res.status(500).json({ message: "Server error" });
   }
 };

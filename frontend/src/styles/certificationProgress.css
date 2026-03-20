@@ -72,3 +72,45 @@
   margin-top: 15px;
   font-size: 14px;
 }
+
+.timeline {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.step {
+  text-align: center;
+  flex: 1;
+}
+
+.circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ccc;
+  margin: auto;
+}
+
+.step.active .circle {
+  background: green;
+}
+
+.audit-feedback {
+  background: #e7f3ff;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.rejected-box {
+  background: #ffe6e6;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.approved-box {
+  background: #e6ffe6;
+  padding: 10px;
+  border-radius: 8px;
+}

@@ -32,6 +32,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/auditor", auditorRoutes);
 app.use("/api/certification", certificationRoutes);
+app.use("/uploads", express.static("uploads"));
 
 
 // Start server
