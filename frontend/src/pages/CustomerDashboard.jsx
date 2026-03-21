@@ -41,9 +41,15 @@ function CompanyDashboard() {
             <h3>Assigned Audit</h3>
             <p>View assigned auditor details</p>
           </div>
-          <button onClick={() => navigate("/dashboard/certificates")}>
-  My Certificates
-</button>
+          <div
+            className="dashboard-box"
+            onClick={() => navigate("/dashboard/certificates")}
+          >
+            <div className="icon">🏆</div>
+            <h3>My Certificates</h3>
+            <p>View all approved Certificates</p>
+          </div>
+          
         </div>
       </div>
    
