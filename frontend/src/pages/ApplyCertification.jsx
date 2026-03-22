@@ -4,6 +4,7 @@ import "../styles/applyCertification.css";
 
 function ApplyCertification() {
   const [step, setStep] = useState(1);
+  const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
     legal_name: "",
@@ -20,7 +21,7 @@ function ApplyCertification() {
     evidences: []
   });
 
-  // Handle input
+  // ================= INPUT =================
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -28,7 +29,7 @@ function ApplyCertification() {
     });
   };
 
-  // Items
+  // ================= ITEMS =================
   const handleItemChange = (index, field, value) => {
     const updated = [...formData.items];
     updated[index][field] = value;
@@ -47,16 +48,65 @@ function ApplyCertification() {
     setFormData({ ...formData, items: updated });
   };
 
-  // File upload
+  // ================= FILE =================
   const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+
+    const updatedFiles = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file)
+    }));
+
     setFormData({
       ...formData,
-      evidences: [...e.target.files]
+      evidences: [...formData.evidences, ...updatedFiles]
     });
   };
 
-  // Submit
+  const removeFile = (index) => {
+    const updated = [...formData.evidences];
+    updated.splice(index, 1);
+    setFormData({ ...formData, evidences: updated });
+  };
+
+  // ================= VALIDATION =================
+  const validateStep = () => {
+    let newErrors = {};
+
+    if (step === 1) {
+      if (!formData.legal_name) newErrors.legal_name = "Required";
+      if (!formData.contact_name) newErrors.contact_name = "Required";
+      if (!formData.contact_email) newErrors.contact_email = "Required";
+    }
+
+    if (step === 2) {
+      if (!formData.service_scope) newErrors.service_scope = "Required";
+      if (!formData.customer_count) newErrors.customer_count = "Required";
+      if (!formData.employee_count) newErrors.employee_count = "Required";
+    }
+
+    if (step === 3) {
+      formData.items.forEach((item, index) => {
+        if (!item.name) {
+          newErrors[`item_${index}`] = "Item name required";
+        }
+      });
+    }
+
+    if (step === 4) {
+      if (formData.evidences.length === 0) {
+        newErrors.evidences = "Upload at least one file";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // ================= SUBMIT =================
   const handleSubmit = async () => {
+    if (!validateStep()) return;
+
     try {
       const form = new FormData();
 
@@ -68,8 +118,8 @@ function ApplyCertification() {
 
       form.append("items", JSON.stringify(formData.items));
 
-      formData.evidences.forEach((file) => {
-        form.append("files", file);
+      formData.evidences.forEach((item) => {
+        form.append("files", item.file);
       });
 
       await API.post("/applications", form, {
@@ -90,6 +140,26 @@ function ApplyCertification() {
       <div className="apply-card">
 
         <h2>Apply for CIO Certification</h2>
+
+        {/* PROGRESS BAR */}
+        <div className="progress-container">
+          {[1, 2, 3, 4].map((s) => (
+            <div key={s} className="progress-step">
+              <div className={`circle ${step >= s ? "active" : ""}`}>
+                {s}
+              </div>
+              <span className={step >= s ? "active-text" : ""}>
+                {["Company", "Business", "Items", "Evidence"][s - 1]}
+              </span>
+            </div>
+          ))}
+
+          <div
+            className="progress-line"
+            style={{ width: `${((step - 1) / 3) * 100}%` }}
+          ></div>
+        </div>
+
         <p className="step-text">Step {step} of 4</p>
 
         {/* STEP 1 */}
@@ -97,12 +167,33 @@ function ApplyCertification() {
           <>
             <h3 className="section-title">Company Profile</h3>
 
-            <input name="legal_name" placeholder="Legal Name" onChange={handleChange} />
+            <input
+              name="legal_name"
+              placeholder="Legal Name"
+              onChange={handleChange}
+              className={errors.legal_name ? "input-error" : ""}
+            />
+            {errors.legal_name && <p className="error">{errors.legal_name}</p>}
+
             <input name="brand_name" placeholder="Brand Name" onChange={handleChange} />
             <input name="website" placeholder="Website" onChange={handleChange} />
-            <input name="hq_location" placeholder="Head Office Location" onChange={handleChange} />
-            <input name="contact_name" placeholder="Contact Name" onChange={handleChange} />
-            <input name="contact_email" placeholder="Contact Email" onChange={handleChange} />
+            <input name="hq_location" placeholder="HQ Location" onChange={handleChange} />
+
+            <input
+              name="contact_name"
+              placeholder="Contact Name"
+              onChange={handleChange}
+              className={errors.contact_name ? "input-error" : ""}
+            />
+            {errors.contact_name && <p className="error">{errors.contact_name}</p>}
+
+            <input
+              name="contact_email"
+              placeholder="Contact Email"
+              onChange={handleChange}
+              className={errors.contact_email ? "input-error" : ""}
+            />
+            {errors.contact_email && <p className="error">{errors.contact_email}</p>}
           </>
         )}
 
@@ -111,10 +202,31 @@ function ApplyCertification() {
           <>
             <h3 className="section-title">Business Details</h3>
 
-            <input name="service_scope" placeholder="Service Scope" onChange={handleChange} />
-            <input type="number" name="customer_count" placeholder="Customer Count" onChange={handleChange} />
-            <input type="number" name="employee_count" placeholder="Employee Count" onChange={handleChange} />
-            <input type="number" name="years_in_business" placeholder="Years in Business" onChange={handleChange} />
+            <input
+              name="service_scope"
+              placeholder="Service Scope"
+              onChange={handleChange}
+              className={errors.service_scope ? "input-error" : ""}
+            />
+            {errors.service_scope && <p className="error">{errors.service_scope}</p>}
+
+            <input
+              type="number"
+              name="customer_count"
+              placeholder="Customer Count"
+              onChange={handleChange}
+              className={errors.customer_count ? "input-error" : ""}
+            />
+            {errors.customer_count && <p className="error">{errors.customer_count}</p>}
+
+            <input
+              type="number"
+              name="employee_count"
+              placeholder="Employee Count"
+              onChange={handleChange}
+              className={errors.employee_count ? "input-error" : ""}
+            />
+            {errors.employee_count && <p className="error">{errors.employee_count}</p>}
           </>
         )}
 
@@ -132,6 +244,9 @@ function ApplyCertification() {
                     handleItemChange(index, "name", e.target.value)
                   }
                 />
+                {errors[`item_${index}`] && (
+                  <p className="error">{errors[`item_${index}`]}</p>
+                )}
 
                 <select
                   value={item.package_type}
@@ -149,9 +264,7 @@ function ApplyCertification() {
                 </select>
 
                 {index > 0 && (
-                  <button onClick={() => removeItem(index)}>
-                    Remove
-                  </button>
+                  <button onClick={() => removeItem(index)}>Remove</button>
                 )}
               </div>
             ))}
@@ -165,14 +278,30 @@ function ApplyCertification() {
           <>
             <h3 className="section-title">Upload Evidence</h3>
 
-<label className="file-upload">
-  <input type="file" multiple onChange={handleFileChange} />
-  <div>Click to upload or drag & drop files</div>
-</label>
+            <label className="file-upload">
+              <input type="file" multiple onChange={handleFileChange} />
+              <div>📁 Click to upload or drag files</div>
+            </label>
 
-<p className="file-text">
-  {formData.evidences.length} file(s) selected
-</p>
+            {errors.evidences && (
+              <p className="error">{errors.evidences}</p>
+            )}
+
+            <div className="file-list">
+              {formData.evidences.map((item, index) => (
+                <div key={index} className="file-item">
+                  {item.file.type.startsWith("image") ? (
+                    <img src={item.preview} alt="preview" />
+                  ) : (
+                    <div className="file-icon">📄</div>
+                  )}
+
+                  <span>{item.file.name}</span>
+
+                  <button onClick={() => removeFile(index)}>✕</button>
+                </div>
+              ))}
+            </div>
           </>
         )}
 
@@ -185,7 +314,12 @@ function ApplyCertification() {
           )}
 
           {step < 4 ? (
-            <button className="btn btn-primary" onClick={() => setStep(step + 1)}>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                if (validateStep()) setStep(step + 1);
+              }}
+            >
               Next
             </button>
           ) : (
