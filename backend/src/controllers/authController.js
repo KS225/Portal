@@ -10,14 +10,12 @@ export const register = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 🔍 Check if user exists
     const [existing] = await db.query(
       "SELECT * FROM users WHERE email = ?",
       [email]
     );
 
     if (existing.length > 0) {
-      // If user exists but not verified → resend OTP
       if (!existing[0].is_verified) {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const expiry = new Date(Date.now() + 5 * 60 * 1000);
@@ -39,21 +37,17 @@ export const register = async (req, res) => {
       });
     }
 
-    // 🔐 Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 🔢 Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiry = new Date(Date.now() + 5 * 60 * 1000);
 
-    // 💾 Insert user
     const [result] = await db.query(
       `INSERT INTO users (email, password, otp, otp_expiry)
        VALUES (?, ?, ?, ?)`,
       [email, hashedPassword, otp, expiry]
     );
 
-    // 📩 Send OTP
     await sendOTP(email, otp);
 
     return res.status(201).json({
@@ -70,15 +64,19 @@ export const register = async (req, res) => {
 };
 
 /* =========================
-   LOGIN (ONLY VERIFIED)
+   LOGIN (FINAL VERSION)
 ========================= */
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { identifier, password, isInternal } = req.body;
 
+    // 🔹 Normalize input
+    const cleanIdentifier = identifier.trim().toLowerCase();
+
+    // 🔍 Find user by username OR email
     const [users] = await db.query(
-      "SELECT * FROM users WHERE email = ?",
-      [email]
+      "SELECT * FROM users WHERE username = ? OR email = ?",
+      [cleanIdentifier, cleanIdentifier]
     );
 
     if (users.length === 0) {
@@ -87,34 +85,96 @@ export const login = async (req, res) => {
 
     const user = users[0];
 
-    // 🚫 Block if not verified
-    if (!user.is_verified) {
+    const internalRoles = ["SUPERADMIN", "ADMIN", "OPERATIONS"];
+
+    /* =========================
+       ACCESS CONTROL
+    ========================= */
+
+    // 🔐 Internal login
+    if (isInternal) {
+      if (!internalRoles.includes(user.role)) {
+        return res.status(403).json({
+          message: "Access denied: Not an internal team member",
+        });
+      }
+    }
+
+    // 🧾 Company login
+    else {
+      if (user.role !== "APPLICANT") {
+        return res.status(403).json({
+          message: "Please login via correct portal",
+        });
+      }
+    }
+
+    /* =========================
+       EMAIL VERIFICATION (COMPANY ONLY)
+    ========================= */
+    if (user.role === "APPLICANT" && !user.is_verified) {
       return res.status(403).json({
-        message: "Please verify your email first"
+        message: "Please verify your email first",
       });
     }
 
+    /* =========================
+       OPTIONAL: INTERNAL EMAIL VERIFICATION
+       (Enable later if needed)
+    ========================= */
+    /*
+    if (user.role !== "APPLICANT" && user.email && !user.is_verified) {
+      return res.status(403).json({
+        message: "Please verify your email",
+      });
+    }
+    */
+
+    /* =========================
+       ACCOUNT ACTIVE CHECK
+    ========================= */
+    if (!user.is_active) {
+      return res.status(403).json({
+        message: "Account is deactivated",
+      });
+    }
+
+    /* =========================
+       PASSWORD CHECK
+    ========================= */
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid password" });
     }
 
+    /* =========================
+       TOKEN
+    ========================= */
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    return res.json({ token, user });
+    /* =========================
+       SAFE USER RESPONSE
+    ========================= */
+    const { password: _, otp, otp_expiry, ...safeUser } = user;
+
+    return res.json({
+      token,
+      user: safeUser,
+      forcePasswordChange: user.is_temp_password || false
+    });
 
   } catch (err) {
+    console.error("LOGIN ERROR:", err);
     return res.status(500).json({ error: err.message });
   }
 };
-
 /* =========================
-   VERIFY OTP (NO LOGIN HERE)
+   VERIFY OTP
 ========================= */
 export const verifyOTP = async (req, res) => {
   try {

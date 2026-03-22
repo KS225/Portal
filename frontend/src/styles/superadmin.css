@@ -1,0 +1,52 @@
+.sa-container {
+  padding: 30px;
+}
+
+.sa-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.sa-card {
+  padding: 20px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  background: white;
+  border-radius: 8px;
+}
+
+.sa-card:hover {
+  transform: translateY(-3px);
+}
+
+.sa-form {
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sa-form input,
+.sa-form select {
+  padding: 10px;
+}
+
+.credentials {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f5f7fa;
+}
+
+.user-card {
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin-top: 10px;
+  border-radius: 6px;
+}
+
+.actions button {
+  margin-left: 10px;
+}

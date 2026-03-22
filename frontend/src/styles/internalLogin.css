@@ -90,3 +90,7 @@
   margin: 5px 0;
   cursor: pointer;
 }
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

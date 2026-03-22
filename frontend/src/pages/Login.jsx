@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API from "../services/api";
-import { useEffect } from "react";
 import "../styles/login.css";
 
 function Login() {
@@ -14,14 +13,20 @@ function Login() {
     password: ""
   });
 
+  // 🔐 Auto redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
 
-useEffect(() => {
-  const token = localStorage.getItem("token");
+    if (token && user) {
+      if (user.role === "APPLICANT") {
+        navigate("/dashboard");
+      } else {
+        navigate("/internal/operations"); // default internal route
+      }
+    }
+  }, [navigate]);
 
-  if (token) {
-    navigate("/dashboard");
-  }
-}, []);
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -34,61 +39,82 @@ useEffect(() => {
 
     try {
       const res = await API.post("/auth/login", formData);
-      localStorage.setItem("token", res.data.token);
-      navigate("/dashboard");
+
+      const { token, user } = res.data;
+
+      // 🔐 Store token + user
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // 🎯 Role-based redirect
+      if (user.role === "APPLICANT") {
+        navigate("/dashboard");
+      } else {
+        alert("Please use Internal Login for staff access");
+        navigate("/internal-login");
+      }
+
     } catch (err) {
-      alert("Login failed");
+      alert(err.response?.data?.message || "Login failed");
     }
   };
 
   return (
-    <>
+    <div className="login-container">
+      <div className="login-card">
 
+        <h2>Company Login</h2>
 
-      <div className="login-container">
-        <div className="login-card">
+        <form onSubmit={handleSubmit}>
+          <input
+            type="email"
+            name="email"
+            placeholder="Official Email"
+            onChange={handleChange}
+            required
+          />
 
-          <h2>Company Login</h2>
-
-          <form onSubmit={handleSubmit}>
+          <div className="password-field">
             <input
-              type="email"
-              name="email"
-              placeholder="Official Email"
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Enter password"
               onChange={handleChange}
               required
             />
-
-            <div className="password-field">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Enter password"
-                onChange={handleChange}
-                required
-              />
-              <span onClick={() => setShowPassword(!showPassword)}>
-                {showPassword ? "Hide" : "Show"}
-              </span>
-            </div>
-
-            <button type="submit">Sign In</button>
-          </form>
-
-          <p className="forgot">Forgot Password?</p>
-
-          <div className="links">
-            <p>
-  New to CioVerified Certification?{" "}
-  <Link to="/register">Click here</Link>
-</p>
-            <p>CioVerified member? Click here</p>
-            <p>Reviewer/Auditor? Click here</p>
+            <span onClick={() => setShowPassword(!showPassword)}>
+              {showPassword ? "Hide" : "Show"}
+            </span>
           </div>
 
+          <button type="submit">Sign In</button>
+        </form>
+
+        <p className="forgot">Forgot Password?</p>
+
+        <div className="links">
+          <p>
+            New to CioVerified Certification?{" "}
+            <Link to="/register">Click here</Link>
+          </p>
+
+          <p className="admin-link">
+            CIO Verified Member?{" "}
+            <span onClick={() => navigate("/internal-login")}>
+              Click here
+            </span>
+          </p>
+
+          <p className="admin-link">
+            Internal Team (Ops/Admin/Auditor)?{" "}
+            <span onClick={() => navigate("/internal-login")}>
+              Login here
+            </span>
+          </p>
         </div>
+
       </div>
-    </>
+    </div>
   );
 }
 

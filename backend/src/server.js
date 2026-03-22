@@ -6,6 +6,8 @@ import authRoutes from "./routes/authRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
 import fileRoutes from "./routes/fileRoutes.js";
 import { initDatabase } from "./config/initDb.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
 
 dotenv.config({ path: "../.env" });
 
@@ -20,6 +22,8 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/files", fileRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/profile", profileRoutes);
 
 // Test route
 app.get("/", (req, res) => {
