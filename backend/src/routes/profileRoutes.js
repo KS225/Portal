@@ -8,12 +8,14 @@ import {
   verifyEmailOtp
 } from "../controllers/profileController.js";
 import { authenticateUser } from "../middleware/authMiddleware.js";
+import { updateCompanyProfile } from "../controllers/profileController.js";
+
 
 const router = express.Router();
 
 router.get("/", authenticateUser, getProfile);
 router.put("/", authenticateUser , updateProfile);
-
+router.put("/company", authenticateUser, updateCompanyProfile);
 
 router.post("/send-otp", authenticateUser, sendResetOtp);
 router.post("/send-email-otp", authenticateUser, sendEmailOtp);

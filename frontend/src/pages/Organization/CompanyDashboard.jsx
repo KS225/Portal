@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import API from "../services/api";
-import "../styles/dashboard.css";
+import API from "../../services/api";
+import "../../styles/dashboard.css";
 
 function CompanyDashboard() {
   const navigate = useNavigate();
@@ -73,7 +73,7 @@ function CompanyDashboard() {
 
         <div
           className="dashboard-box"
-          onClick={() => navigate("/dashboard/profile")}
+          onClick={() => navigate("/dashboard/company-profile")}
         >
           <div className="icon">👤</div>
           <h3>Company Profile</h3>

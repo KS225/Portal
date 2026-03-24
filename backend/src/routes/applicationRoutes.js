@@ -1,15 +1,21 @@
 import express from "express";
-import { createApplication } from "../controllers/applicationController.js";
+import { submitApplication } from "../controllers/applicationController.js";
+import { upload } from "../middleware/upload.js";
 import { authenticateUser } from "../middleware/authMiddleware.js";
-import multer from "multer";
+
 const router = express.Router();
-const upload = multer({ dest: "uploads/" });
 
 router.post(
-  "/",
+  "/submit",
   authenticateUser,
-  upload.array("files"),
-  createApplication
+  upload.fields([
+    { name: "gstDoc" },
+    { name: "sezDoc" },
+    { name: "companyProfile" },
+    { name: "pitchDeck" },
+    { name: "certifications" },
+  ]),
+  submitApplication
 );
 
 export default router;

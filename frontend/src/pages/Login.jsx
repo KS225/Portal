@@ -39,6 +39,9 @@ function Login() {
 
     try {
       const res = await API.post("/auth/login", formData);
+      
+
+console.log("LOGIN RESPONSE:", res.data);
 
       const { token, user } = res.data;
 
@@ -106,8 +109,8 @@ function Login() {
           </p>
 
           <p className="admin-link">
-            Internal Team (Ops/Admin/Auditor)?{" "}
-            <span onClick={() => navigate("/internal-login")}>
+            Auditor/Reviewer?{" "}
+            <span onClick={() => navigate("/assessor/assessor-login")}>
               Login here
             </span>
           </p>

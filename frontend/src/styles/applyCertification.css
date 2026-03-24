@@ -253,7 +253,25 @@ tr:hover {
   border-radius: 4px;
   cursor: pointer;
 }
+.card {
+  border: 1px solid #e5e7eb;
+  padding: 18px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  background: #fafafa;
+}
 
+/* Better spacing inside grid */
+.grid {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+/* Add spacing between sections */
+h3 {
+  margin-top: 25px;
+}
 /* ================= TABLE HEADER ================= */
 .table-header {
   display: flex;

@@ -7,10 +7,22 @@ import { sendOTP } from "../utils/mailer.js";
    REGISTER + SEND OTP
 ========================= */
 export const register = async (req, res) => {
-  try {
-    const { email, password } = req.body;
+  const conn = await db.getConnection();
 
-    const [existing] = await db.query(
+  try {
+    const {
+      email,
+      password,
+      companyName,
+      registrationNumber,
+      industry,
+      contactPerson,
+      designation,
+      phone
+    } = req.body;
+
+    // ✅ CHECK EXISTING USER
+    const [existing] = await conn.query(
       "SELECT * FROM users WHERE email = ?",
       [email]
     );
@@ -20,7 +32,7 @@ export const register = async (req, res) => {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const expiry = new Date(Date.now() + 5 * 60 * 1000);
 
-        await db.query(
+        await conn.query(
           "UPDATE users SET otp = ?, otp_expiry = ? WHERE email = ?",
           [otp, expiry, email]
         );
@@ -37,36 +49,76 @@ export const register = async (req, res) => {
       });
     }
 
+    // ✅ PASSWORD HASH
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiry = new Date(Date.now() + 5 * 60 * 1000);
 
-    const [result] = await db.query(
+    await conn.beginTransaction();
+
+    // ✅ INSERT USER
+    const [result] = await conn.query(
       `INSERT INTO users (email, password, otp, otp_expiry)
        VALUES (?, ?, ?, ?)`,
       [email, hashedPassword, otp, expiry]
     );
 
+    const userId = result.insertId;
+
+    // ✅ INSERT COMPANY
+    await conn.query(
+      `INSERT INTO companies (
+        user_id,
+        company_name,
+        registration_number,
+        industry,
+        contact_person,
+        designation,
+        email,
+        phone,
+        status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
+      [
+        userId,
+        companyName?.trim(),
+        registrationNumber,
+        industry || "",
+        contactPerson || "",
+        designation || "",
+        email,
+        phone || ""
+      ]
+    );
+
+    // ✅ COMMIT
+    await conn.commit();
+
+    // ✅ SEND OTP AFTER SUCCESS
     await sendOTP(email, otp);
 
     return res.status(201).json({
       message: "OTP sent successfully",
-      userId: result.insertId
+      userId
     });
 
   } catch (err) {
+    await conn.rollback(); // ✅ always rollback
     console.error("REGISTER ERROR:", err);
+
     return res.status(500).json({
       message: "Registration failed"
     });
+
+  } finally {
+    conn.release(); // ✅ always release
   }
 };
-
 /* =========================
    LOGIN (FIXED VERSION)
 ========================= */
 export const login = async (req, res) => {
+ 
   try {
     let { identifier, email, password, isInternal } = req.body;
 

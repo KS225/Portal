@@ -7,12 +7,19 @@ import {
 
 import Register from "./pages/Register";
 import Login from "./pages/Login";
-import CompanyDashboard from "./pages/CompanyDashboard";
-import ApplyCertification from "./pages/ApplyCertification";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import VerifyOtp from "./pages/VerifyOtp";
 import InternalLogin from "./pages/InternalLogin";
+
+//Organization
+import CompanyDashboard from "./pages/Organization/CompanyDashboard";
+import ApplyCertification from "./pages/Organization/ApplyCertification";
+import CompanyProfile from "./pages/Organization/CompanyProfile";
+
+//Assessor
+import AssessorLogin from "./pages/Assessor/AssessorLogin";
+import AssessorDashboard from "./pages/Assessor/Assessor";
 
 // Internal
 import OperationsDashboard from "./pages/Internal/operations/OperationsDashboard";
@@ -60,6 +67,26 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
+<Route
+  path="/dashboard/company-profile"
+  element={
+    <ProtectedRoute roles={["APPLICANT"]}>
+      <CompanyProfile />
+    </ProtectedRoute>
+  }
+/>
+
+
+<Route path="/assessor/assessor-login" element={<AssessorLogin />} />
+
+<Route
+  path="/assessor/dashboard"
+  element={
+    <ProtectedRoute roles={["ASSESSOR"]}>
+      <AssessorDashboard />
+    </ProtectedRoute>
+  }
+/>
 
         {/* INTERNAL LOGIN */}
         <Route path="/internal-login" element={<InternalLogin />} />

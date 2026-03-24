@@ -8,32 +8,34 @@ export const getProfile = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const [rows] = await db.query(`
-      SELECT 
-        u.id,
-        u.username,
-        u.email,
-        u.role,
-        u.is_verified,
-        i.full_name,
-        i.phone,
-        i.department,
-        i.designation
-      FROM users u
-      LEFT JOIN internal_users i ON u.id = i.user_id
-      WHERE u.id = ?
-    `, [userId]);
+    const [rows] = await db.query(
+      `SELECT 
+        company_name AS companyName,
+        registration_number AS registrationNumber,
+        industry,
+        contact_person AS contactPerson,
+        designation,
+        email,
+        phone
+       FROM companies
+       WHERE user_id = ?`,
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "No data found" });
+    }
 
     res.json(rows[0]);
-
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    console.error("GET PROFILE ERROR:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-/* =========================
-   UPDATE PROFILE
-========================= */
+/* ==================================
+   UPDATE PROFILE FOR INTERNAL USER
+====================================== */
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -63,6 +65,51 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+/* ==================================
+   UPDATE PROFILE FOR APPLICANT
+====================================== */
+export const updateCompanyProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const {
+      companyName,
+      registrationNumber,
+      industry,
+      contactPerson,
+      designation,
+      phone
+    } = req.body;
+
+    await db.query(
+      `UPDATE companies SET
+        company_name = ?,
+        registration_number = ?,
+        industry = ?,
+        contact_person = ?,
+        designation = ?,
+        phone = ?
+       WHERE user_id = ?`,
+      [
+        companyName,
+        registrationNumber,
+        industry,
+        contactPerson,
+        designation,
+        phone,
+        userId
+      ]
+    );
+
+    res.json({ message: "Company profile updated successfully" });
+
+  } catch (err) {
+    console.error("Company Update Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+}; 
 
 /* =========================
    SEND EMAIL OTP

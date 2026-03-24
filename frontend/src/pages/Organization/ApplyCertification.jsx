@@ -1,5 +1,6 @@
 import { useState } from "react";
-import "../styles/applyCertification.css";
+import "../../styles/applyCertification.css";
+import API from "../../services/api";
 
 function CompanyApplication() {
   // ================= VALIDATION REGEX =================
@@ -24,7 +25,10 @@ const handleFileChange = (e) => {
 
   setFiles((prev) => ({
     ...prev,
-   [name]: Array.from(selectedFiles)
+    [name]:
+      name === "certifications"
+        ? Array.from(selectedFiles)   // ✅ multiple files
+        : selectedFiles[0] || null    // ✅ single file
   }));
 };
   const [step, setStep] = useState(1);
@@ -378,6 +382,79 @@ if (step === 4) {
     setFormData({ ...formData, solutions: updated });
   };
 
+  const handleSubmitFinal = async () => {
+  try {
+    const form = new FormData();
+
+    // ✅ Append JSON data
+    form.append("data", JSON.stringify(formData));
+
+    // ✅ Append files
+    Object.entries(files).forEach(([key, value]) => {
+      if (!value) return;
+
+      if (Array.isArray(value)) {
+        value.forEach((file) => form.append(key, file));
+      } else {
+        form.append(key, value);
+      }
+    });
+
+    // ✅ Get token
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please login first");
+      return;
+    }
+
+    // ✅ API CALL (IMPORTANT - YOU REMOVED THIS)
+    const res = await API.post("/application/submit", form, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    // ✅ SUCCESS AFTER API RESPONSE
+    alert("Application submitted successfully!");
+    console.log(res.data);
+
+    // ✅ RESET FORM
+    setFormData({
+      companyDetails: { hasGST: "" },
+      owners: [
+        {
+          name: "",
+          designation: "",
+          email: "",
+          phone: "",
+          experience: "",
+          aadhaar: "",
+          pan: "",
+        },
+      ],
+      partners: [],
+      businessType: "",
+      products: [],
+      solutions: [],
+    });
+
+    setFiles({
+      gstDoc: null,
+      sezDoc: null,
+      companyProfile: null,
+      pitchDeck: null,
+      certifications: [],
+    });
+
+    setStep(1); // go back to step 1
+
+  } catch (err) {
+    console.error(err);
+    alert("Submission failed");
+  }
+};
+
   return (
     <div className="apply-wrapper">
       <div className="apply-card">
@@ -544,7 +621,7 @@ maxLength={6}
                     name="hasGST"
                     value="yes"
                     onChange={handleCompanyChange}
-                  />{" "}
+                  />
                   Yes
                 </label>
                 <label>
@@ -553,7 +630,7 @@ maxLength={6}
                     name="hasGST"
                     value="no"
                     onChange={handleCompanyChange}
-                  />{" "}
+                  />
                   No
                 </label>
               </div>
@@ -618,7 +695,7 @@ maxLength={6}
          {formData.owners.map((o, i) => (
   <div key={i} className="card">
 
-    <div className="grid">
+    
       <div>
         <input
           name="name"
@@ -639,9 +716,9 @@ maxLength={6}
           onChange={(e) => handleOwnerChange(i, e)}
         />
       </div>
-    </div>
+    
 
-    <div className="grid">
+   
       <div>
         <input
           name="email"
@@ -671,9 +748,9 @@ maxLength={10}
           <span className="error">{errors[`owner_${i}_phone`]}</span>
         )}
       </div>
-    </div>
+    
 
-    <div className="grid">
+    
       <div>
         <input
           name="experience"
@@ -681,7 +758,7 @@ maxLength={10}
           value={o.experience || ""}
           onChange={(e) => handleOwnerChange(i, e)}
         />
-      </div>
+    
 
       <div>
         <input
@@ -732,7 +809,9 @@ maxLength={12}
             {formData.partners.map((p, i) => (
               <div key={i} className="card">
                 <div className="grid">
-                  <input
+                 <input
+  name="name"
+  placeholder="Name"
   value={p.name || ""}
   onChange={(e) => {
     const updated = [...formData.partners];
@@ -740,7 +819,10 @@ maxLength={12}
     setFormData({ ...formData, partners: updated });
   }}
 />
-                  <input
+
+<input
+  name="designation"
+  placeholder="Designation"
   value={p.designation || ""}
   onChange={(e) => {
     const updated = [...formData.partners];
@@ -748,10 +830,10 @@ maxLength={12}
     setFormData({ ...formData, partners: updated });
   }}
 />
-                </div>
 
-                <div className="grid">
-                  <input
+<input
+  name="email"
+  placeholder="Email"
   value={p.email || ""}
   onChange={(e) => {
     const updated = [...formData.partners];
@@ -760,7 +842,9 @@ maxLength={12}
   }}
 />
 
-                 <input
+<input
+  name="phone"
+  placeholder="Phone"
   value={p.phone || ""}
   onChange={(e) => {
     const value = e.target.value.replace(/\D/g, "");
@@ -1049,59 +1133,59 @@ onChange={handleProductChange}
                       <button className="btn-add" onClick={addProduct}>
                         Add Product
                       </button>
-                      {/* TABLE */}{" "}
+                      {/* TABLE */}
                       <div className="table-container">
-                        {" "}
+                        
                         <table>
-                          {" "}
+                          
                           <thead>
-                            {" "}
+                            
                             <tr>
-                              {" "}
-                              <th>Name</th> <th>Description</th>{" "}
-                              <th>Category</th> <th>Industry</th> <th>Team</th>{" "}
-                              <th>Version</th> <th>Deployment</th>{" "}
-                              <th>Pricing</th> <th>Customers</th>{" "}
-                              <th>Clients</th> <th>Integrations</th>{" "}
-                              <th>Features</th> <th>Security</th> <th>SLA</th>{" "}
-                              <th>Roadmap</th> <th>Package</th> <th>Remark</th>{" "}
-                              <th></th>{" "}
-                            </tr>{" "}
-                          </thead>{" "}
+                              
+                              <th>Name</th> <th>Description</th>
+                              <th>Category</th> <th>Industry</th> <th>Team</th>
+                              <th>Version</th> <th>Deployment</th>
+                              <th>Pricing</th> <th>Customers</th>
+                              <th>Clients</th> <th>Integrations</th>
+                              <th>Features</th> <th>Security</th> <th>SLA</th>
+                              <th>Roadmap</th> <th>Package</th> <th>Remark</th>
+                              <th></th>
+                            </tr>
+                          </thead>
                           <tbody>
-                            {" "}
+                            
                             {formData.products.map((p, i) => (
                               <tr key={i}>
-                                {" "}
-                                <td>{p.productName}</td>{" "}
-                                <td>{p.description}</td>{" "}
-                                <td>{p.customCategory || p.category}</td>{" "}
-                                <td>{p.customIndustry || p.industryServed}</td>{" "}
-                                <td>{p.teamSize}</td> <td>{p.version}</td>{" "}
+                                
+                                <td>{p.productName}</td>
+                                <td>{p.description}</td>
+                                <td>{p.customCategory || p.category}</td>
+                                <td>{p.customIndustry || p.industryServed}</td>
+                                <td>{p.teamSize}</td> <td>{p.version}</td>
                                 <td>
                                   {p.customDeployment || p.deploymentType}
-                                </td>{" "}
-                                <td>{p.customPricing || p.pricingModel}</td>{" "}
-                                <td>{p.customersCount}</td>{" "}
-                                <td>{p.majorClients}</td>{" "}
-                                <td>{p.integrations}</td>{" "}
-                                <td>{p.keyFeatures}</td>{" "}
-                                <td>{p.securityStandards}</td>{" "}
-                                <td>{p.uptimeSLA}</td> <td>{p.roadmap}</td>{" "}
-                                <td>{p.package?.join(", ")}</td>{" "}
-                                <td>{p.remark}</td>{" "}
+                                </td>
+                                <td>{p.customPricing || p.pricingModel}</td>
+                                <td>{p.customersCount}</td>
+                                <td>{p.majorClients}</td>
+                                <td>{p.integrations}</td>
+                                <td>{p.keyFeatures}</td>
+                                <td>{p.securityStandards}</td>
+                                <td>{p.uptimeSLA}</td> <td>{p.roadmap}</td>
+                                <td>{p.package?.join(", ")}</td>
+                                <td>{p.remark}</td>
                                 <td>
-                                  {" "}
+                                  
                                   <button
                                     className="btn-remove"
                                     onClick={() => removeProduct(i)}
                                   >
                                     X
-                                  </button>{" "}
-                                </td>{" "}
+                                  </button>
+                                </td>
                               </tr>
-                            ))}{" "}
-                          </tbody>{" "}
+                            ))}
+                          </tbody>
                         </table>
                       </div>
                     </>
@@ -1454,16 +1538,22 @@ onChange={handleSolutionChange}
     )}
   </div>
 )}
-            <div className="button-group">
-              <button className="btn-back" onClick={() => setStep(3)}>
-                Back
-              </button>
-             onClick={() => {
-  if (validateStep()) {
-    handleSubmitFinal();
-  }
-}}
-            </div>
+          <div className="button-group">
+  <button className="btn-back" onClick={() => setStep(3)}>
+    Back
+  </button>
+
+  <button
+    className="btn-primary"
+    onClick={() => {
+      if (validateStep()) {
+        handleSubmitFinal();
+      }
+    }}
+  >
+    Submit
+  </button>
+</div>
           </>
         )}
       </div>
