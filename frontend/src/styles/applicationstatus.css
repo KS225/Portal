@@ -1,0 +1,178 @@
+/* PAGE */
+.status-page {
+  padding: 30px 40px;
+}
+
+/* HEADER */
+.status-header {
+  margin-bottom: 15px;
+}
+
+.status-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* STATUS MESSAGE */
+.status-message {
+  background: #f5e8d8;
+  border: 1px solid #e2c8a0;
+  padding: 14px;
+  border-radius: 8px;
+  text-align: center;
+  margin: 15px 0;
+}
+
+/* 🔥 STEPPER CONTAINER */
+.status-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin: 50px 0;
+}
+
+/* BASE LINE */
+.status-container::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 5%;
+  width: 90%;
+  height: 4px;
+  background: #e0e0e0;
+  transform: translateY(-50%);
+  border-radius: 2px;
+  z-index: 0;
+}
+
+/* 🔥 PROGRESS LINE */
+.status-container::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 5%;
+  width: var(--progress, 0%);
+  height: 4px;
+  background: linear-gradient(90deg, #4caf50, #ff9800);
+  transform: translateY(-50%);
+  border-radius: 2px;
+  z-index: 1;
+  transition: width 0.4s ease;
+}
+
+.application-card {
+  background: #fff;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #eee;
+  transition: all 0.2s ease;
+}
+
+.application-card:hover {
+  box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+}
+
+/* HEADER */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+}
+
+/* LEFT */
+.card-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ID */
+.app-id {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* STATUS */
+.status-text {
+  font-size: 12px;
+  color: #666;
+  text-transform: capitalize;
+}
+
+/* ARROW */
+.arrow {
+  font-size: 14px;
+  color: #999;
+  transition: 0.3s;
+}
+
+.arrow.open {
+  transform: rotate(180deg);
+  color: #333;
+}
+
+/* BODY */
+.card-body {
+  padding: 15px 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* CARD */
+.application-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 25px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+/* HEADER */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.card-header:hover {
+  opacity: 0.8;
+}
+
+.app-id {
+  font-weight: 600;
+}
+
+.status-text {
+  font-size: 12px;
+  color: #777;
+}
+
+/* ARROW */
+.arrow {
+  transition: transform 0.3s ease;
+}
+
+.arrow.open {
+  transform: rotate(180deg);
+}
+
+/* BODY */
+.card-body {
+  margin-top: 15px;
+  animation: fadeIn 0.3s ease;
+}
+
+/* ANIMATION */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

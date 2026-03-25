@@ -16,7 +16,8 @@ router.post(
   "/submit-profile",
   upload.fields([
     { name: "resume", maxCount: 1 },
-    { name: "company_profile", maxCount: 1 }
+    { name: "company_profile", maxCount: 1 },
+    { name: "certificate", maxCount: 1 }
   ]),
   submitProfile
 );

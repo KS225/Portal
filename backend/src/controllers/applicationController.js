@@ -1,4 +1,48 @@
 import db from "../config/db.js";
+import sendEmail from "../utils/sendEmail.js"; // ✅ ADDED
+
+export const getMyApplications = async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const [rows] = await db.query(
+      `SELECT id, status, created_at 
+       FROM applications 
+       WHERE user_id = ? 
+       ORDER BY id DESC`,
+      [req.user.id]
+    );
+
+    res.json(rows);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const getApplicationById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [rows] = await db.query(
+      "SELECT id, status, created_at, last_updated_at FROM applications WHERE id = ?",
+      [id]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    res.json(rows[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
 
 export const submitApplication = async (req, res) => {
   const conn = await db.getConnection();
@@ -20,9 +64,9 @@ export const submitApplication = async (req, res) => {
       return res.status(400).json({ error: "Invalid JSON data" });
     }
 
-    // ✅ GET COMPANY ID
+    // ✅ GET COMPANY ID + EMAIL (UPDATED)
     const [companyRows] = await conn.query(
-      `SELECT id FROM companies WHERE user_id = ?`,
+      `SELECT id, email FROM companies WHERE user_id = ?`,
       [req.user.id]
     );
 
@@ -34,6 +78,7 @@ export const submitApplication = async (req, res) => {
     }
 
     const companyId = companyRows[0].id;
+    const companyEmail = companyRows[0].email; // ✅ ADDED
 
     // ================= APPLICATION =================
     const [appResult] = await conn.query(
@@ -45,10 +90,11 @@ export const submitApplication = async (req, res) => {
         website,
         hq_location,
         contact_email,
-        employee_count
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        employee_count,
+        status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)`,
       [
-        req.user.id, // ✅ removed fallback
+        req.user.id,
         companyId,
         formData.companyDetails?.organisationName || "",
         formData.companyDetails?.brandName || "",
@@ -56,6 +102,7 @@ export const submitApplication = async (req, res) => {
         `${formData.companyDetails?.city || ""}, ${formData.companyDetails?.state || ""}`,
         formData.companyDetails?.officialEmail || "",
         formData.companyDetails?.companySize || 0,
+        "SUBMITTED"
       ]
     );
 
@@ -236,7 +283,17 @@ export const submitApplication = async (req, res) => {
     await saveFile("PITCH", files.pitchDeck);
     await saveFile("CERT", files.certifications);
 
+    // ✅ COMMIT FIRST
     await conn.commit();
+
+    // ✅ SEND EMAIL AFTER SUCCESS
+    if (companyEmail) {
+      await sendEmail(
+        companyEmail,
+        "Application Submitted",
+        `Your application (ID: ${applicationId}) has been successfully submitted.`
+      );
+    }
 
     res.json({
       success: true,

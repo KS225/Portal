@@ -636,43 +636,7 @@ AND p.name IN (
 );
     `);
 
-    // ================= Assessor Profiles Temp =================
-    await db.query(`CREATE TABLE IF NOT EXISTS assessor_profiles_temp (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-
-  invitation_id INT NOT NULL,
-
-  full_name VARCHAR(255),
-  phone VARCHAR(20),
-  experience_years INT,
-  specialization TEXT,
-  address TEXT,
-
-  type ENUM('individual','company'),
-
-  company_name VARCHAR(255),
-  gstin VARCHAR(50),
-  years_in_operation INT,
-
-  resume LONGBLOB,
-  company_profile LONGBLOB,
-
-  status ENUM(
-    'SUBMITTED',
-    'ADMIN_APPROVED',
-    'ADMIN_REJECTED',
-    'SUPERADMIN_APPROVED',
-    'SUPERADMIN_REJECTED'
-  ) DEFAULT 'SUBMITTED',
-
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-  FOREIGN KEY (invitation_id)
-    REFERENCES assessor_invitations(id)
-    ON DELETE CASCADE
-);
-`);
-// ================= APPLICATION ASSESSMENT=================
+    // ================= APPLICATION ASSESSMENT=================
     await db.query(`
       CREATE TABLE IF NOT EXISTS application_assignments (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -712,6 +676,42 @@ AND p.name IN (
   CONSTRAINT fk_invited_admin
     FOREIGN KEY (invited_by_admin_id)
     REFERENCES users(id)
+    ON DELETE CASCADE
+);
+`);
+// ================= Assessor Profiles Temp =================
+    await db.query(`CREATE TABLE IF NOT EXISTS assessor_profiles_temp (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+
+  invitation_id INT NOT NULL,
+
+  full_name VARCHAR(255),
+  phone VARCHAR(20),
+  experience_years INT,
+  specialization TEXT,
+  address TEXT,
+
+  type ENUM('individual','company'),
+
+  company_name VARCHAR(255),
+  gstin VARCHAR(50),
+  years_in_operation INT,
+
+  resume LONGBLOB,
+  company_profile LONGBLOB,
+
+  status ENUM(
+    'SUBMITTED',
+    'ADMIN_APPROVED',
+    'ADMIN_REJECTED',
+    'SUPERADMIN_APPROVED',
+    'SUPERADMIN_REJECTED'
+  ) DEFAULT 'SUBMITTED',
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (invitation_id)
+    REFERENCES assessor_invitations(id)
     ON DELETE CASCADE
 );
 `);

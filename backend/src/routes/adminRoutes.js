@@ -9,6 +9,8 @@ import {
   getAuthGroups,
    getUserPermissions,
    updateUserPermission,
+   getPendingAuditors,
+  verifyAuditor
 } from "../controllers/adminController.js";
 
 import { authenticateUser } from "../middleware/authMiddleware.js";
@@ -68,8 +70,12 @@ router.get(
   getAuthGroups
 );
 
+// For pending assessors
+router.get("/auditors/pending", getPendingAuditors);
+router.post("/auditors/verify/:id", verifyAuditor);
+
 /* =========================
-   DASHBOARD (can be relaxed later)
+   DASHBOARD
 ========================= */
 
 router.get(

@@ -1,304 +1,318 @@
-import {useEffect, useState } from "react";
-import "../../styles/checklist.css";
+import { useEffect, useState } from "react";
+import "../../styles/assessorprofile.css";
 import { useSearchParams } from "react-router-dom";
 import API from "../../services/api";
 
 function AssessorProfile() {
-  const [type, setType] = useState("");
-  const [showOtherSpec, setShowOtherSpec] = useState(false);
   const [errors, setErrors] = useState({});
-const [searchParams] = useSearchParams();
-const token = searchParams.get("token");
-const [valid, setValid] = useState(false);
-  const [formData, setFormData] = useState({
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+  const [valid, setValid] = useState(false);
+
+  const initialForm = {
     full_name: "",
     phone: "",
     type: "",
-
     email: "",
     experience_years: "",
     specialization: "",
-    other_specialization: "",
-    certifications: "",
-    linkedin_profile: "",
+    certificate: null,
     resume: null,
-
     company_name: "",
     gstin: "",
-    years_in_operation: "",
     company_profile: null,
-
     address: "",
-  });
-useEffect(() => {
-  const validateToken = async () => {
-    try {
-      const res = await API.get(`/assessor/validate-token?token=${token}`);
-
-      if (res.data.valid) {
-        setValid(true);
-
-        // auto-fill email
-        setFormData(prev => ({
-          ...prev,
-          email: res.data.email
-        }));
-      }
-
-    } catch (err) {
-      alert("Invalid or expired link");
-    }
   };
 
-  if (token) validateToken();
-}, [token]);
+  const [formData, setFormData] = useState(initialForm);
+
+  // TOKEN VALIDATION
+  useEffect(() => {
+    const validateToken = async () => {
+      try {
+        const res = await API.get(`/assessor/validate-token?token=${token}`);
+        if (res.data.valid) {
+          setValid(true);
+          setFormData((prev) => ({
+            ...prev,
+            email: res.data.email,
+          }));
+        }
+      } catch {
+        alert("Invalid or expired link");
+      }
+    };
+
+    if (token) validateToken();
+  }, [token]);
+
+  // HANDLE CHANGE
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: files ? files[0] : value,
-    });
+    }));
   };
 
+  // TYPE SWITCH
+  const handleTypeChange = (type) => {
+    setFormData((prev) => ({
+      ...initialForm,
+      type,
+      full_name: prev.full_name,
+      phone: prev.phone,
+      email: prev.email,
+    }));
+    setErrors({});
+  };
+
+  // VALIDATION
   const validate = () => {
     let newErrors = {};
 
-    if (!formData.full_name) newErrors.full_name = "Full name required";
+    if (!formData.full_name.trim())
+      newErrors.full_name = "Full name is required";
 
     if (!/^\d{10}$/.test(formData.phone))
       newErrors.phone = "Enter valid 10-digit phone";
 
-    if (!formData.type) newErrors.type = "Select type";
+    if (!formData.type)
+      newErrors.type = "Select type";
 
-    if (!formData.email) newErrors.email = "Email required";
+    if (!formData.email.trim())
+      newErrors.email = "Email is required";
 
-    if (!formData.experience_years)
-      newErrors.experience_years = "Experience required";
+    if (!formData.address.trim())
+      newErrors.address = "Address is required";
 
-    if (!formData.specialization)
-      newErrors.specialization = "Select specialization";
+    if (formData.type === "individual") {
+      if (!formData.experience_years)
+        newErrors.experience_years = "Experience is required";
 
-    if (formData.specialization === "Other" && !formData.other_specialization)
-      newErrors.other_specialization = "Specify specialization";
+      if (!formData.specialization)
+        newErrors.specialization = "Specialization is required";
 
-    if (!formData.address) newErrors.address = "Address required";
+      if (!formData.resume)
+        newErrors.resume = "Resume is required";
+
+      if (!formData.certificate)
+        newErrors.certificate = "Certificate is required";
+    }
 
     if (formData.type === "company") {
       if (!formData.company_name)
-        newErrors.company_name = "Company name required";
+        newErrors.company_name = "Company name is required";
 
-      if (!formData.gstin) newErrors.gstin = "GSTIN required";
+      if (!formData.gstin)
+        newErrors.gstin = "GSTIN is required";
+
+      if (!formData.company_profile)
+        newErrors.company_profile = "Company profile is required";
+
+      if (!formData.certificate)
+        newErrors.certificate = "Certificate is required";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // SUBMIT
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+    if (!validate()) return;
 
-  if (!validate()) return;
+    try {
+      const form = new FormData();
 
-  try {
-    const form = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value) form.append(key, value);
+      });
 
-    Object.entries(formData).forEach(([key, value]) => {
-      form.append(key, value);
-    });
+      form.append("token", token);
 
-    form.append("token", token);
+      await API.post("/assessor/submit-profile", form, {
+  headers: {
+    "Content-Type": "multipart/form-data",
+  },
+});
 
-    await API.post("/assessor/submit-profile", form);
+      alert("Profile Submitted Successfully ✅");
+    } catch {
+      alert("Submission failed ❌");
+    }
+  };
 
-    alert("Profile Submitted Successfully ✅");
+  if (!valid) return <h2>Invalid or expired invitation link ❌</h2>;
 
-  } catch (err) {
-    console.error(err);
-    alert("Submission failed ❌");
-  }
-};
-if (!valid) {
-  return <h2>Invalid or expired invitation link ❌</h2>;
-}
   return (
-    
     <div className="profile-container">
       <h1>Create Assessor Profile</h1>
 
       <form onSubmit={handleSubmit} className="profile-form">
-
-        {/* BASIC */}
         <input
           name="full_name"
           placeholder="Full Name *"
+          value={formData.full_name}
           onChange={handleChange}
+          className={errors.full_name && "input-error"}
         />
         {errors.full_name && <p className="error">{errors.full_name}</p>}
 
         <input
           name="phone"
           placeholder="Phone Number *"
+          value={formData.phone}
           onChange={handleChange}
+          className={errors.phone && "input-error"}
         />
         {errors.phone && <p className="error">{errors.phone}</p>}
 
-        {/* TYPE */}
-       {/* TYPE */}
-<label className="label">Select Type *</label>
+        <label className="label">Select Type *</label>
 
-<div className="radio-group">
-  <label className="radio-item">
-    <input
-      type="radio"
-      name="type"
-      value="individual"
-      checked={type === "individual"}
-      onChange={(e) => {
-        setType(e.target.value);
-        setFormData({ ...formData, type: e.target.value });
-      }}
-    />
-    <span>Individual</span>
-  </label>
+        <div className="radio-group">
+          <label>
+            <input
+              type="radio"
+              checked={formData.type === "individual"}
+              onChange={() => handleTypeChange("individual")}
+            />
+            Individual
+          </label>
 
-  <label className="radio-item">
-    <input
-      type="radio"
-      name="type"
-      value="company"
-      checked={type === "company"}
-      onChange={(e) => {
-        setType(e.target.value);
-        setFormData({ ...formData, type: e.target.value });
-      }}
-    />
-    <span>Company</span>
-  </label>
-</div>
+          <label>
+            <input
+              type="radio"
+              checked={formData.type === "company"}
+              onChange={() => handleTypeChange("company")}
+            />
+            Company
+          </label>
+        </div>
+        {errors.type && <p className="error">{errors.type}</p>}
 
-{errors.type && <p className="error">{errors.type}</p>}
-
-        {/* SHOW ONLY AFTER TYPE */}
-        <>
+        {formData.type && (
           <>
             <input
               name="email"
               placeholder="Email *"
+              value={formData.email}
               onChange={handleChange}
+              className={errors.email && "input-error"}
             />
             {errors.email && <p className="error">{errors.email}</p>}
 
+            <textarea
+              name="address"
+              placeholder="Full Address *"
+              value={formData.address}
+              onChange={handleChange}
+              className={errors.address && "input-error"}
+            />
+            {errors.address && <p className="error">{errors.address}</p>}
+          </>
+        )}
+
+        {/* INDIVIDUAL */}
+        {formData.type === "individual" && (
+          <>
             <input
               type="number"
               name="experience_years"
               placeholder="Experience (Years) *"
+              value={formData.experience_years}
               onChange={handleChange}
+              className={errors.experience_years && "input-error"}
             />
             {errors.experience_years && (
               <p className="error">{errors.experience_years}</p>
             )}
 
-            {/* SPECIALIZATION */}
-            <label className="label">Specialization *</label>
-
-            <select
+            <input
               name="specialization"
-              onChange={(e) => {
-                const value = e.target.value;
-                setFormData({ ...formData, specialization: value });
-                setShowOtherSpec(value === "Other");
-              }}
-            >
-              <option value="">Select Specialization</option>
-              <option value="Security">Security</option>
-              <option value="Cloud">Cloud</option>
-              <option value="ERP">ERP</option>
-              <option value="AI">AI</option>
-              <option value="Other">Other</option>
-            </select>
-
+              placeholder="Specialization *"
+              value={formData.specialization}
+              onChange={handleChange}
+              className={errors.specialization && "input-error"}
+            />
             {errors.specialization && (
               <p className="error">{errors.specialization}</p>
             )}
 
-            {showOtherSpec && (
-              <input
-                name="other_specialization"
-                placeholder="Specify Other *"
-                onChange={handleChange}
-              />
-            )}
-
-            {errors.other_specialization && (
-              <p className="error">{errors.other_specialization}</p>
-            )}
-
-            {/* OPTIONAL */}
-            <textarea
-              name="certifications"
-              placeholder="Certifications (Optional)"
+            <label className="label">Upload Certificate *</label>
+            <input
+              type="file"
+              name="certificate"
               onChange={handleChange}
+              className={errors.certificate && "input-error"}
             />
+            {errors.certificate && (
+              <p className="error">{errors.certificate}</p>
+            )}
+
+            <label className="label">Upload Resume *</label>
+            <input
+              type="file"
+              name="resume"
+              onChange={handleChange}
+              className={errors.resume && "input-error"}
+            />
+            {errors.resume && <p className="error">{errors.resume}</p>}
+          </>
+        )}
+
+        {/* COMPANY */}
+        {formData.type === "company" && (
+          <>
+            <h3>Company Details</h3>
 
             <input
-              name="linkedin_profile"
-              placeholder="LinkedIn Profile"
+              name="company_name"
+              placeholder="Company Name *"
+              value={formData.company_name}
               onChange={handleChange}
+              className={errors.company_name && "input-error"}
             />
-
-            <input type="file" name="resume" onChange={handleChange} />
-
-            {/* COMPANY */}
-            {type === "company" && (
-              <>
-                <h2>Company Details</h2>
-
-                <input
-                  name="company_name"
-                  placeholder="Company Name *"
-                  onChange={handleChange}
-                />
-                {errors.company_name && (
-                  <p className="error">{errors.company_name}</p>
-                )}
-
-                <input
-                  name="gstin"
-                  placeholder="GSTIN *"
-                  onChange={handleChange}
-                />
-                {errors.gstin && (
-                  <p className="error">{errors.gstin}</p>
-                )}
-
-                <input
-                  name="years_in_operation"
-                  placeholder="Years in Operation"
-                  onChange={handleChange}
-                />
-
-                <input
-                  type="file"
-                  name="company_profile"
-                  onChange={handleChange}
-                />
-              </>
+            {errors.company_name && (
+              <p className="error">{errors.company_name}</p>
             )}
 
-            {/* ADDRESS */}
-            <textarea
-              name="address"
-              placeholder="Full Address *"
+            <input
+              name="gstin"
+              placeholder="GSTIN *"
+              value={formData.gstin}
               onChange={handleChange}
+              className={errors.gstin && "input-error"}
             />
-            {errors.address && (
-              <p className="error">{errors.address}</p>
+            {errors.gstin && <p className="error">{errors.gstin}</p>}
+
+            <label className="label">Upload Certificate *</label>
+            <input
+              type="file"
+              name="certificate"
+              onChange={handleChange}
+              className={errors.certificate && "input-error"}
+            />
+            {errors.certificate && (
+              <p className="error">{errors.certificate}</p>
             )}
 
-            <button type="submit">Submit</button>
+            <label className="label">Upload Company Profile *</label>
+            <input
+              type="file"
+              name="company_profile"
+              onChange={handleChange}
+              className={errors.company_profile && "input-error"}
+            />
+            {errors.company_profile && (
+              <p className="error">{errors.company_profile}</p>
+            )}
           </>
-        </>{/* END SHOW ONLY AFTER TYPE */}
+        )}
+
+        {formData.type && <button type="submit">Submit</button>}
       </form>
     </div>
   );

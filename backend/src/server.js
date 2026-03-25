@@ -21,11 +21,13 @@ app.use(cors({
 app.use(express.json());
 
 // Routes
+app.use("/uploads", express.static("uploads"));
+
 app.use("/api/auth", authRoutes);
 app.use("/api/files", fileRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api", profileRoutes);
-app.use("/api", adminPermissionRoutes);
+app.use("/api/admin", adminPermissionRoutes);
 app.use("/api/application", applicationRoutes);
 app.use("/api/assessor", assessorRoutes);
 

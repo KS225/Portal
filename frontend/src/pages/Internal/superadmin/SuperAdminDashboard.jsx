@@ -33,6 +33,15 @@ export default function SuperAdminDashboard() {
         >
           <h3>Manage Permissions</h3>
           <p>Grant or revoke permissions</p>
+          
+        </div>
+        
+         <div
+          className="sa-card"
+          onClick={() => navigate("/internal/superadmin/verify-auditors")}
+        >
+          <h3>Verify Auditors</h3>
+          <p>Approve or reject auditor applications</p>
         </div>
 
       </div>

@@ -311,3 +311,155 @@ export const getDashboardStats = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+/* ============================
+   Get ALL PENDING ASSESSORS
+=============================== */
+
+export const getPendingAuditors = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT ap.*, ai.email
+      FROM assessor_profiles_temp ap
+      JOIN assessor_invitations ai ON ap.invitation_id = ai.id
+      WHERE ai.status = 'FILLED'
+    `);
+
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error fetching auditors" });
+  }
+};
+
+/* =========================
+VERIFY AUDITOR
+========================= */
+export const verifyAuditor = async (req, res) => {
+  const conn = await db.getConnection();
+
+  try {
+    const { id } = req.params;
+
+    await conn.beginTransaction();
+
+    // 🔥 FIX: JOIN to get email
+    const [rows] = await conn.query(`
+      SELECT ap.*, ai.email
+      FROM assessor_profiles_temp ap
+      JOIN assessor_invitations ai 
+        ON ap.invitation_id = ai.id
+      WHERE ap.id = ?
+    `, [id]);
+
+    if (rows.length === 0) {
+      await conn.rollback();
+      return res.status(404).json({ message: "Auditor not found" });
+    }
+
+    const auditor = rows[0];
+
+    // 🔐 Generate temp password
+    const tempPassword = Math.random().toString(36).slice(-8);
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    // ❌ Check duplicate
+    const [existingUser] = await conn.query(
+      "SELECT id FROM users WHERE email = ?",
+      [auditor.email]
+    );
+
+    if (existingUser.length > 0) {
+      await conn.rollback();
+      return res.status(400).json({
+        message: "User already exists",
+      });
+    }
+
+    // ✅ Create user
+    const [result] = await conn.query(
+      `INSERT INTO users 
+       (username, email, password, role, is_verified, is_temp_password, is_active)
+       VALUES (?, ?, ?, 'AUDITOR', ?, ?, ?)`,
+      [
+        auditor.email,
+        auditor.email,
+        hashedPassword,
+        true,
+        true,
+        true,
+      ]
+    );
+
+    const userId = result.insertId;
+
+    // ✅ Insert final table
+    await conn.query(
+      `INSERT INTO auditor_profiles (
+        user_id,
+        type,
+        full_name,
+        email,
+        phone,
+        experience_years,
+        resume,
+        company_name,
+        gstin,
+        years_in_operation,
+        company_profile,
+        specialization,
+        address,
+        status
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'APPROVED')`,
+      [
+        userId,
+        auditor.type ? auditor.type.toUpperCase() : "INDIVIDUAL",
+        auditor.full_name,
+        auditor.email,
+        auditor.phone,
+        auditor.experience_years,
+        auditor.resume,
+        auditor.company_name,
+        auditor.gstin,
+        auditor.years_in_operation,
+        auditor.company_profile,
+        auditor.specialization,
+        auditor.address,
+      ]
+    );
+
+    // ✅ Update temp
+    await conn.query(
+      `UPDATE assessor_profiles_temp 
+       SET status = 'SUPERADMIN_APPROVED' 
+       WHERE id = ?`,
+      [id]
+    );
+
+    // ✅ Update invitation
+    await conn.query(
+      `UPDATE assessor_invitations 
+       SET status = 'SUPERADMIN_APPROVED' 
+       WHERE id = ?`,
+      [auditor.invitation_id]
+    );
+
+    await conn.commit();
+
+    res.json({
+      message: "Auditor verified ✅",
+      credentials: {
+        email: auditor.email,   // ✅ NOW WORKS
+        password: tempPassword,
+      },
+    });
+
+  } catch (err) {
+    await conn.rollback();
+    console.error(err);
+    res.status(500).json({ message: "Verification failed" });
+  } finally {
+    conn.release();
+  }
+};

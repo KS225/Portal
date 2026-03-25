@@ -17,6 +17,7 @@ import InternalLogin from "./pages/InternalLogin";
 import CompanyDashboard from "./pages/Organization/CompanyDashboard";
 import ApplyCertification from "./pages/Organization/ApplyCertification";
 import CompanyProfile from "./pages/Organization/CompanyProfile";
+import ApplicationStatus from "./pages/ApplicationStatus";
 
 // Assessor
 import AssessorLogin from "./pages/Assessor/AssessorLogin";
@@ -31,12 +32,15 @@ import ApplicationDetails from "./pages/Internal/operations/ApplicationDetails";
 import SuperAdminDashboard from "./pages/Internal/superadmin/SuperAdminDashboard";
 import CreateUser from "./pages/Internal/superadmin/CreateUser";
 import UserList from "./pages/Internal/superadmin/UserList";
+import UserPermissions from "./pages/Internal/superadmin/UserPermissions";
 import ManagePermissions from "./pages/Internal/superadmin/ManagePermissions";
 
 import InternalLayout from "./components/InternalLayout";
 import AdminDashboard from "./pages/Internal/admin/AdminDashboard";
 import ProfileSetup from "./pages/Internal/profile/ProfileSetup";
 import InviteAssessor from "./pages/Internal/admin/InviteAssessor";
+import VerifyAuditors from "./pages/Internal/superadmin/VerifyAuditor";
+
 
 /* ========================= */
 function AppContent() {
@@ -57,34 +61,34 @@ return (
     <Route path="/login" element={<Login />} />
     <Route path="/verify-otp" element={<VerifyOtp />} />
 
-    {/* ================= COMPANY ================= */}
-    <Route
-      path="/dashboard"
-      element={
-        <ProtectedRoute roles={["APPLICANT"]}>
-          <CompanyDashboard />
-        </ProtectedRoute>
-      }
-    />
+   {/* COMPANY */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute roles={["APPLICANT"]}>
+              <CompanyDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-    <Route
-      path="/dashboard/apply"
-      element={
-        <ProtectedRoute roles={["APPLICANT"]}>
-          <ApplyCertification />
-        </ProtectedRoute>
-      }
-    />
+        <Route
+          path="/dashboard/apply"
+          element={
+            <ProtectedRoute roles={["APPLICANT"]}>
+              <ApplyCertification />
+            </ProtectedRoute>
+          }
+        />
+<Route
+  path="/dashboard/company-profile"
+  element={
+    <ProtectedRoute roles={["APPLICANT"]}>
+      <CompanyProfile />
+    </ProtectedRoute>
+  }
+/>
 
-    <Route
-      path="/dashboard/company-profile"
-      element={
-        <ProtectedRoute roles={["APPLICANT"]}>
-          <CompanyProfile />
-        </ProtectedRoute>
-      }
-    />
-
+<Route path="/dashboard/application/:id" element={<ApplicationStatus />} />
     {/* ================= ASSESSOR ================= */}
 
     <Route path="/assessor/login" element={<AssessorLogin />} />
@@ -148,6 +152,26 @@ return (
         </ProtectedRoute>
       }
     />
+
+<Route
+  path="/internal/superadmin/permissions/:id"
+  element={
+    <ProtectedRoute roles={["SUPERADMIN"]}>
+      <InternalLayout>
+        <UserPermissions />
+      </InternalLayout>
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/internal/superadmin/verify-auditors"
+  element={
+    <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+      <VerifyAuditors />
+    </ProtectedRoute>
+  }
+/>
 
     {/* ================= OPERATIONS ================= */}
     <Route

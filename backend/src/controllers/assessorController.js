@@ -51,10 +51,21 @@ years_in_operation
 } = req.body;
 
 // 🔥 BASIC VALIDATION
-if (!token || !full_name || !phone || !experience_years || !specialization) {
+if (!token || !full_name || !phone) {
   return res.status(400).json({ message: "Missing required fields" });
 }
 
+if (type === "individual") {
+  if (!experience_years || !specialization) {
+    return res.status(400).json({ message: "Missing individual fields" });
+  }
+}
+
+if (type === "company") {
+  if (!company_name || !gstin) {
+    return res.status(400).json({ message: "Missing company fields" });
+  }
+}
 // 🔥 FILES (diskStorage → use path)
 const resume = req.files?.resume?.[0]?.path || null;
 const companyProfile = req.files?.company_profile?.[0]?.path || null;

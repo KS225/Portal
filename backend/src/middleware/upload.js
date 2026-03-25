@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
     // 🔥 ADD THESE FOR ASSESSOR
     if (file.fieldname === "resume") folder = "uploads/resume";
     if (file.fieldname === "company_profile") folder = "uploads/company_profile";
-
+    if (file.fieldname === "certificate") folder = "uploads/certificate";
     createFolder(folder);
     cb(null, folder);
   },

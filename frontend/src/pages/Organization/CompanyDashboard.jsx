@@ -5,7 +5,6 @@ import "../../styles/dashboard.css";
 
 function CompanyDashboard() {
   const navigate = useNavigate();
-
   const [applications, setApplications] = useState([]);
 
   useEffect(() => {
@@ -14,45 +13,23 @@ function CompanyDashboard() {
 
   const fetchApplications = async () => {
     try {
-      const res = await API.get("/applications/my");
+      const res = await API.get("/application/my");
       setApplications(res.data);
     } catch (err) {
       console.error(err);
     }
   };
 
+  // ✅ get latest application
+  const latestApp = applications[0];
+
   return (
     <div className="dashboard-wrapper">
       <h2>Company Dashboard</h2>
 
-      {/* 🔥 TOP SUMMARY */}
-      <div className="summary-cards">
-        <div className="card">
-          <h3>{applications.length}</h3>
-          <p>Total Applications</p>
-        </div>
-
-        <div className="card">
-          <h3>
-            {
-              applications.filter(a => a.status === "UNDER_VERIFICATION").length
-            }
-          </h3>
-          <p>Under Review</p>
-        </div>
-
-        <div className="card">
-          <h3>
-            {
-              applications.filter(a => a.status === "COMPLETED").length
-            }
-          </h3>
-          <p>Approved</p>
-        </div>
-      </div>
-
-      {/* ⚡ QUICK ACTIONS */}
       <div className="dashboard-grid">
+
+        {/* NEW APPLICATION */}
         <div
           className="dashboard-box"
           onClick={() => navigate("/dashboard/apply")}
@@ -62,6 +39,23 @@ function CompanyDashboard() {
           <p>Apply for certification</p>
         </div>
 
+        {/* 🔥 APPLICATION STATUS */}
+        <div
+          className="dashboard-box"
+          onClick={() => {
+            if (!latestApp) {
+              alert("No application found");
+              return;
+            }
+            navigate(`/dashboard/application/${latestApp.id}`);
+          }}
+        >
+          <div className="icon">📊</div>
+          <h3>Application Status</h3>
+          <p>Track your application progress</p>
+        </div>
+
+        {/* CERTIFICATES */}
         <div
           className="dashboard-box"
           onClick={() => navigate("/dashboard/certificates")}
@@ -71,6 +65,7 @@ function CompanyDashboard() {
           <p>Download approved certificates</p>
         </div>
 
+        {/* PROFILE */}
         <div
           className="dashboard-box"
           onClick={() => navigate("/dashboard/company-profile")}
@@ -79,46 +74,8 @@ function CompanyDashboard() {
           <h3>Company Profile</h3>
           <p>Manage company info</p>
         </div>
+
       </div>
-
-      {/* 📊 APPLICATION LIST */}
-      <h3 style={{ marginTop: "30px" }}>Your Applications</h3>
-
-      <table className="app-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Company</th>
-            <th>Status</th>
-            <th>Amount</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {applications.map((app) => (
-            <tr key={app.id}>
-              <td>{app.id}</td>
-              <td>{app.organisation_name}</td>
-              <td>
-                <span className={`status ${app.status.toLowerCase()}`}>
-                  {app.status}
-                </span>
-              </td>
-              <td>₹{app.total_amount || 0}</td>
-              <td>
-                <button
-                  onClick={() =>
-                    navigate(`/dashboard/application/${app.id}`)
-                  }
-                >
-                  View
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }

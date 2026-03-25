@@ -494,3 +494,66 @@ input:checked + .slider:before {
 .no-group {
   color: #999;
 }
+/*Auditor*/
+.auditor-card {
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+}
+
+.credentials-box {
+  background: #e0f2fe;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+.sa-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.sa-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.sa-card:hover {
+  transform: translateY(-5px);
+}
+.auditor-card {
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 10px;
+  background: white;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  text-align: center;
+  min-width: 300px;
+}
+
+.modal button {
+  margin: 5px;
+}
