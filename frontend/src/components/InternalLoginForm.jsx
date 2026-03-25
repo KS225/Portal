@@ -67,7 +67,7 @@ export default function InternalLoginForm({ onSubmit, loading }) {
         {/* Links */}
         <div className="links">
           <p onClick={() => navigate("/login")}>Company Login</p>
-<p onClick={() => navigate("/assessor/assessor-login")}>
+<p onClick={() => navigate("/assessor/login")}>
   Auditor / Reviewer Login
 </p>
         </div>

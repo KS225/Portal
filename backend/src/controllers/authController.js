@@ -118,11 +118,9 @@ export const register = async (req, res) => {
    LOGIN (FIXED VERSION)
 ========================= */
 export const login = async (req, res) => {
- 
   try {
-    let { identifier, email, password, isInternal } = req.body;
+    let { identifier, email, password, isInternal, isAssessor } = req.body;
 
-    // 🔹 Use either identifier or email
     const cleanIdentifier = (identifier || email || "").trim().toLowerCase();
 
     if (!cleanIdentifier) {
@@ -133,11 +131,11 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Password is required" });
     }
 
-    // 🔍 Find user by email (or username if needed)
+    // 🔍 Find user
     const [users] = await db.query(
-  "SELECT * FROM users WHERE email = ? OR username = ?",
-  [cleanIdentifier, cleanIdentifier]
-);
+      "SELECT * FROM users WHERE email = ? OR username = ?",
+      [cleanIdentifier, cleanIdentifier]
+    );
 
     if (users.length === 0) {
       return res.status(400).json({ message: "User not found" });
@@ -146,31 +144,59 @@ export const login = async (req, res) => {
     const user = users[0];
 
     const internalRoles = ["SUPERADMIN", "ADMIN"];
+    const assessorRoles = ["AUDITOR", "REVIEWER"];
 
     /* =========================
        ACCESS CONTROL
     ========================= */
+
+    // 🔥 INTERNAL LOGIN
     if (isInternal) {
       if (!internalRoles.includes(user.role)) {
         return res.status(403).json({
           message: "Access denied: Not an internal team member",
         });
       }
-    } else {
+    }
+
+    // 🔥 ASSESSOR LOGIN
+    else if (isAssessor) {
+      if (!assessorRoles.includes(user.role)) {
+        return res.status(403).json({
+          message: "Please login via correct portal",
+        });
+      }
+
+      // 🔥 CHECK APPROVAL
+      const [inv] = await db.query(
+        `SELECT status 
+         FROM assessor_invitations 
+         WHERE email = ? 
+         ORDER BY id DESC 
+         LIMIT 1`,
+        [user.email]
+      );
+
+      if (!inv.length || inv[0].status !== "SUPERADMIN_APPROVED") {
+        return res.status(403).json({
+          message: "You are not approved yet",
+        });
+      }
+    }
+
+    // 🔥 APPLICANT LOGIN
+    else {
       if (user.role !== "APPLICANT") {
         return res.status(403).json({
           message: "Please login via correct portal",
         });
       }
-    }
 
-    /* =========================
-       EMAIL VERIFICATION (COMPANY ONLY)
-    ========================= */
-    if (user.role === "APPLICANT" && !user.is_verified) {
-      return res.status(403).json({
-        message: "Please verify your email first",
-      });
+      if (!user.is_verified) {
+        return res.status(403).json({
+          message: "Please verify your email first",
+        });
+      }
     }
 
     /* =========================
@@ -201,29 +227,30 @@ export const login = async (req, res) => {
     );
 
     /* =========================
-   PROFILE COMPLETION CHECK
-========================= */
-const [profile] = await db.query(
-  "SELECT full_name FROM internal_users WHERE user_id = ?",
-  [user.id]
-);
+       PROFILE CHECK (INTERNAL ONLY)
+    ========================= */
+    let isProfileComplete = true;
 
-let isProfileComplete = false;
+    if (internalRoles.includes(user.role)) {
+      const [profile] = await db.query(
+        "SELECT full_name FROM internal_users WHERE user_id = ?",
+        [user.id]
+      );
 
-if (profile.length > 0 && profile[0].full_name) {
-  isProfileComplete = true;
-}
+      isProfileComplete = profile.length > 0 && profile[0].full_name;
+    }
+
     /* =========================
-       SAFE USER RESPONSE
+       SAFE RESPONSE
     ========================= */
     const { password: _, otp, otp_expiry, ...safeUser } = user;
 
-    return  res.json({
-  token,
-  user: safeUser,
-  forcePasswordChange: user.is_temp_password || false,
-  isProfileComplete // ✅ NEW
-});
+    return res.json({
+      token,
+      user: safeUser,
+      forcePasswordChange: user.is_temp_password || false,
+      isProfileComplete
+    });
 
   } catch (err) {
     console.error("LOGIN ERROR:", err);

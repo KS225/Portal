@@ -21,7 +21,7 @@ import ApplicationStatus from "./pages/ApplicationStatus";
 
 // Assessor
 import AssessorLogin from "./pages/Assessor/AssessorLogin";
-// import AssessorDashboard from "./pages/Assessor/AssessorDashboard";
+import Assessor from "./pages/Assessor/Assessor";
 import AssessorProfile from "./pages/Assessor/AssessorProfile";
 
 // Internal
@@ -93,14 +93,14 @@ return (
 
     <Route path="/assessor/login" element={<AssessorLogin />} />
 
-    {/* <Route
+    <Route
       path="/assessor/dashboard"
       element={
         <ProtectedRoute roles={["AUDITOR", "REVIEWER"]}>
-          <AssessorDashboard />
+          <Assessor />
         </ProtectedRoute>
       }
-    /> */}
+    />
 
     {/* 🔥 INVITE FORM (PUBLIC, NO PROTECTION) */}
     <Route path="/assessor-form" element={<AssessorProfile />} />

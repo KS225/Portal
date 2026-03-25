@@ -110,7 +110,7 @@ console.log("LOGIN RESPONSE:", res.data);
 
           <p className="admin-link">
             Auditor/Reviewer?{" "}
-            <span onClick={() => navigate("/assessor/assessor-login")}>
+            <span onClick={() => navigate("/assessor/login")}>
               Login here
             </span>
           </p>

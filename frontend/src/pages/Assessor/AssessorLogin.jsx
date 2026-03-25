@@ -26,7 +26,10 @@ export default function AssessorLogin() {
     setLoading(true);
 
     try {
-      const res = await API.post("/auth/login", formData);
+      const res = await API.post("/auth/login", { ...formData,
+        isAssessor: true, // flag to indicate assessor login
+       }
+      );
 
       const { user, token } = res.data;
 
