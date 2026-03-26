@@ -142,10 +142,14 @@ export const initDatabase = async () => {
           'UNDER_REVIEW_OPS',
           'PRICING_DEFINED',
           'INVOICE_SENT',
+          'ISSUE_RAISED',
+          'ISSUE_RESOLVED',
+          'ISSUE_REJECTED',
           'PAID',
           'AUDITOR_ASSIGNED',
           'AUDIT_COMPLETED',
-          'FINAL_APPROVED'
+          'FINAL_APPROVED',
+          'CANCELLED'
         ) DEFAULT 'SUBMITTED',
 
         assigned_auditor_id INT,
@@ -304,6 +308,25 @@ export const initDatabase = async () => {
         FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
       )
     `);
+    await db.query(`
+CREATE TABLE IF NOT EXISTS invoice_issues (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+
+  application_id INT NOT NULL,
+  user_id INT NOT NULL,
+
+  message TEXT NOT NULL,
+
+  role ENUM('APPLICANT','ADMIN','SUPERADMIN') NOT NULL,
+
+  status ENUM('OPEN','RESOLVED') DEFAULT 'OPEN',
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+`);
     // ================= INVOICE MESSAGES ================= 🔥
     await db.query(`
       CREATE TABLE IF NOT EXISTS invoice_messages (
@@ -513,7 +536,7 @@ export const initDatabase = async () => {
     `);
 
     // ================= SEED AUTH GROUPS =================
-    await db.query(`
+   await db.query(`
       INSERT IGNORE INTO auth_groups (name, description) VALUES
 
 ('Application Operations', 'Handles application flow, assignment, and certification process'),
@@ -522,11 +545,12 @@ export const initDatabase = async () => {
 
 ('Finance', 'Handles invoice generation, payments, and financial tracking'),
 
-('Reporting', 'Provides access to reports and analytics');
+('Reporting', 'Provides access to reports and analytics'),
+('Support Team', 'Handles customer support and issue resolution');
     `);
 
     // ================= SEED PERMISSIONS =================
-    await db.query(`
+       await db.query(`
       INSERT IGNORE INTO permissions (name) VALUES
 
 -- Application
@@ -555,10 +579,15 @@ export const initDatabase = async () => {
 ('send_invoice'),
 ('mark_payment_paid'),
 ('verify_payment'),
-
+('Set_pricing'),
 -- Reporting
 ('view_reports'),
-('view_analytics');
+('view_analytics'),
+
+-- Support
+('view_issues'),
+('resolve_issues'),
+('reply_issues');
     `);
 
     // ================= MAP GROUP → PERMISSIONS =================
@@ -592,7 +621,7 @@ AND p.name IN (
 );
     `);
 
-    await db.query(`
+       await db.query(`
       INSERT IGNORE INTO auth_group_permissions (group_id, permission_id)
 SELECT g.id, p.id
 FROM auth_groups g, permissions p
@@ -601,7 +630,8 @@ AND p.name IN (
   'generate_invoice',
   'send_invoice',
   'mark_payment_paid',
-  'verify_payment'
+  'verify_payment',
+  'set_pricing'
 );
     `);
 
@@ -616,6 +646,15 @@ AND p.name IN (
 );
     `);
 
+    await db.query(`INSERT IGNORE INTO auth_group_permissions (group_id, permission_id)
+SELECT 
+  g.id AS group_id,
+  p.id AS permission_id
+FROM auth_groups g
+JOIN permissions p
+WHERE g.name = 'Support Team'
+AND p.name IN ('view_issues', 'reply_issues', 'resolve_issues');
+    `);
     // ================= APPLICATION ASSESSMENT=================
     await db.query(`
       CREATE TABLE IF NOT EXISTS application_assignments (

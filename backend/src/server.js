@@ -15,6 +15,7 @@ import assessorApprovalRoutes from "./routes/assessorApprovalRoutes.js";
 import auditorRoutes from "./routes/auditorRoutes.js";
 import reviewerRoutes from "./routes/reviewerRoutes.js";
 import checklistRoutes from "./routes/checklistRoutes.js";
+import invoiceRoutes from "./routes/invoiceRoutes.js";
 
 dotenv.config({ path: "../.env" });
 
@@ -33,12 +34,13 @@ app.use("/api/files", fileRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api", profileRoutes);
 app.use("/api", adminPermissionRoutes);
-app.use("/api/application", applicationRoutes);
+app.use("/api/applications", applicationRoutes);
 app.use("/api/assessor", assessorRoutes);
 app.use("/api", assessorApprovalRoutes);
 app.use("/api/auditor", auditorRoutes);
 app.use("/api/reviewer", reviewerRoutes);
 app.use("/api/checklists", checklistRoutes);
+app.use("/api/invoices", invoiceRoutes);
 
 // Test route
 app.get("/", (req, res) => {

@@ -31,7 +31,7 @@ import ReviewerChecklists from "./pages/Assessor/ReviewerChecklists";
 import ReviewerChecklistDetail from "./pages/Assessor/ReviewerChecklistDetail";
 
 // Internal
-import OperationsDashboard from "./pages/Internal/operations/OperationsDashboard";
+// import OperationsDashboard from "./pages/Internal/operations/OperationsDashboard";
 import ApplicationsList from "./pages/Internal/operations/ApplicationsList";
 import ApplicationDetails from "./pages/Internal/operations/ApplicationDetails";
 
@@ -46,7 +46,8 @@ import AdminDashboard from "./pages/Internal/admin/AdminDashboard";
 import ProfileSetup from "./pages/Internal/profile/ProfileSetup";
 import InviteAssessor from "./pages/Internal/admin/InviteAssessor";
 import VerifyAuditors from "./pages/Internal/superadmin/VerifyAuditor";
-
+import IssueDiscussionPage from "./pages/Common/IssueDiscussionPage";
+import InvoicePage from "./pages/Internal/admin/InvoicePage";
 
 /* ========================= */
 function AppContent() {
@@ -212,7 +213,7 @@ return (
 />
 
     {/* ================= OPERATIONS ================= */}
-    <Route
+    {/* <Route
       path="/internal/operations"
       element={
         <ProtectedRoute roles={["OPERATIONS"]}>
@@ -221,7 +222,7 @@ return (
           </InternalLayout>
         </ProtectedRoute>
       }
-    />
+    /> */}
 
     <Route
       path="/internal/operations/applications"
@@ -233,11 +234,21 @@ return (
         </ProtectedRoute>
       }
     />
+ <Route
+          path="/internal/applications"
+          element={
+            <ProtectedRoute roles={["SUPERADMIN", "ADMIN"]}>
+              <InternalLayout>
+                <ApplicationsList />
+              </InternalLayout>
+            </ProtectedRoute>
+          }
+        />
 
     <Route
-      path="/internal/operations/application/:id"
+      path="/internal/application/:id"
       element={
-        <ProtectedRoute roles={["OPERATIONS"]}>
+        <ProtectedRoute roles={["SUPERADMIN","ADMIN"]}>
           <InternalLayout>
             <ApplicationDetails />
           </InternalLayout>
@@ -272,12 +283,29 @@ return (
     <Route
       path="/internal/profile-setup"
       element={
-        <ProtectedRoute roles={["SUPERADMIN", "ADMIN", "OPERATIONS"]}>
+        <ProtectedRoute roles={["SUPERADMIN", "ADMIN"]}>
           <ProfileSetup />
         </ProtectedRoute>
       }
     />
-
+     <Route
+          path="/internal/admin/invoice/:id"
+          element={
+            <ProtectedRoute roles={["ADMIN"]}>
+            <InternalLayout>
+              <InvoicePage />
+            </InternalLayout>
+            </ProtectedRoute>
+          }
+        />
+  <Route
+        path="dashboard/issues/:id"
+        element={<IssueDiscussionPage />}
+        />
+       <Route
+          path="/internal/issues/:id"
+          element={<IssueDiscussionPage />}
+        />
   </Routes>
 </>
 
