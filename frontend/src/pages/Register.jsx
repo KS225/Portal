@@ -1,19 +1,22 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/auth.css";
-import API from "../services/api";
 
 function Register() {
   const navigate = useNavigate();
+  const turnstileRef = useRef(null);
+  const widgetIdRef = useRef(null);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileLoaded, setTurnstileLoaded] = useState(false);
+  const [turnstileError, setTurnstileError] = useState("");
 
   const [formData, setFormData] = useState({
-    companyName: "",
-    registrationNumber: "",
-    industry: "",
+    organizationName: "",
     contactPerson: "",
     designation: "",
     email: "",
@@ -22,10 +25,89 @@ function Register() {
     referralName: "",
     otherSource: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
 
-  /* Generic change handler */
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=])[A-Za-z\d@$!%*?&#^()_\-+=]{8,16}$/;
+
+  useEffect(() => {
+    const renderTurnstile = () => {
+      if (!window.turnstile || !turnstileRef.current) return;
+      if (widgetIdRef.current !== null) return;
+
+      const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+
+      if (!SITE_KEY) {
+        console.error("Missing VITE_TURNSTILE_SITE_KEY in frontend .env");
+        setTurnstileError("Security verification could not be loaded.");
+        return;
+      }
+
+      try {
+        widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
+          sitekey: SITE_KEY,
+          theme: "light",
+          appearance: "always",
+          callback: (token) => {
+            setTurnstileToken(token);
+            setTurnstileError("");
+          },
+          "expired-callback": () => {
+            setTurnstileToken("");
+            setTurnstileError("Security verification expired. Please try again.");
+          },
+          "error-callback": () => {
+            setTurnstileToken("");
+            setTurnstileError("Security verification failed. Please refresh and try again.");
+          },
+        });
+
+        setTurnstileLoaded(true);
+      } catch (error) {
+        console.error("Turnstile render error:", error);
+        setTurnstileError("Security verification could not be initialized.");
+      }
+    };
+
+    const existingScript = document.querySelector(
+      'script[src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"]'
+    );
+
+    if (existingScript) {
+      if (window.turnstile) {
+        renderTurnstile();
+      } else {
+        existingScript.addEventListener("load", renderTurnstile);
+      }
+
+      return () => {
+        existingScript.removeEventListener("load", renderTurnstile);
+      };
+    }
+
+    const script = document.createElement("script");
+    script.src =
+      "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    script.async = true;
+    script.defer = true;
+    script.onload = renderTurnstile;
+    document.body.appendChild(script);
+
+    return () => {
+      script.onload = null;
+    };
+  }, []);
+
+  const resetTurnstile = () => {
+    setTurnstileToken("");
+    setTurnstileError("");
+
+    if (window.turnstile && widgetIdRef.current !== null) {
+      window.turnstile.reset(widgetIdRef.current);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -37,32 +119,25 @@ function Register() {
         : {}),
       ...(name === "source" && value !== "other"
         ? { otherSource: "" }
-        : {})
+        : {}),
     }));
   };
 
-  /* Text-only fields */
   const handleTextOnly = (e) => {
     const value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: value
+      [e.target.name]: value,
     }));
   };
 
-  /* Number-only fields */
   const handleNumberOnly = (e) => {
     const value = e.target.value.replace(/\D/g, "");
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: value
+      [e.target.name]: value,
     }));
   };
-
-  const cinRegex = /^[LU]{1}[0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/;
-
-  const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=])[A-Za-z\d@$!%*?&#^()_\-+=]{8,16}$/;
 
   const checkPasswordStrength = (password) => {
     let strength = 0;
@@ -79,34 +154,45 @@ function Register() {
     return "";
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const validateForm = () => {
+    if (!formData.organizationName.trim()) {
+      alert("Please enter organization name");
+      return false;
+    }
 
-    const cin = formData.registrationNumber.trim();
+    if (!formData.contactPerson.trim()) {
+      alert("Please enter contact person");
+      return false;
+    }
 
-    if (!cinRegex.test(cin)) {
-      alert("Invalid CIN format.\nExample: U12345MH2020PLC012345");
-      return;
+    if (!formData.email.trim()) {
+      alert("Please enter official email");
+      return false;
     }
 
     if (!formData.source) {
       alert("Please select a reference source");
-      return;
+      return false;
     }
 
     if (formData.source === "referral" && !formData.referralName.trim()) {
       alert("Please enter referral name");
-      return;
+      return false;
     }
 
     if (formData.source === "other" && !formData.otherSource.trim()) {
       alert("Please enter other source");
-      return;
+      return false;
+    }
+
+    if (formData.phone && formData.phone.length !== 10) {
+      alert("Phone number must be 10 digits");
+      return false;
     }
 
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match");
-      return;
+      return false;
     }
 
     if (!passwordRegex.test(formData.password)) {
@@ -117,107 +203,95 @@ function Register() {
           "- At least 1 number\n" +
           "- At least 1 special character"
       );
-      return;
+      return false;
     }
 
     if (
       formData.password.toLowerCase().includes(formData.email.toLowerCase())
     ) {
       alert("Password should not contain your email address.");
-      return;
+      return false;
     }
 
+    if (!turnstileLoaded) {
+      alert("Security verification is still loading. Please wait.");
+      return false;
+    }
+
+    if (!turnstileToken) {
+      alert("Please complete the security verification");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
     try {
+      setSubmitting(true);
+
       const payload = {
-        ...formData,
-        registrationNumber: cin,
+        organizationName: formData.organizationName.trim(),
+        contactPerson: formData.contactPerson.trim(),
+        designation: formData.designation.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone.trim(),
+        source: formData.source,
         referralName:
           formData.source === "referral" ? formData.referralName.trim() : "",
         otherSource:
-          formData.source === "other" ? formData.otherSource.trim() : ""
+          formData.source === "other" ? formData.otherSource.trim() : "",
+        password: formData.password,
+        turnstileToken,
       };
 
       const res = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
         alert(data.message || "Registration failed");
+        resetTurnstile();
         return;
       }
 
       alert("OTP sent to your registered email");
 
       navigate("/verify-otp", {
-        state: { email: formData.email }
+        state: { email: formData.email.trim().toLowerCase() },
       });
     } catch (error) {
       console.error("Registration error:", error);
       alert("Server error. Please try again later.");
+      resetTurnstile();
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
     <div className="auth-container">
       <div className="auth-inner">
-        <h2>Company Certification Application</h2>
+        <h2>Organization Certification Application</h2>
 
         <form onSubmit={handleSubmit}>
-          <label>Company Name</label>
+          <label>Organization Name</label>
           <input
-            name="companyName"
-            placeholder="Enter company legal name"
-            value={formData.companyName}
+            name="organizationName"
+            placeholder="Enter organization name"
+            value={formData.organizationName}
             onChange={handleChange}
             required
-          />
-
-          <label className="cin-label">
-            Registration Number (CIN)
-            <span
-              className="info-icon"
-              title={`CIN Format (21 Characters):
-
-1st: L or U (Listed/Unlisted) 
-Next 5: Industry Code
-Next 2: State Code (MH, DL, etc.)
-Next 4: Year of Incorporation
-Next 3: Company Type (PLC/PTC)
-Last 6: ROC Registration Number
-
-Example: U12345MH2020PLC012345`}
-            >
-              ℹ️
-            </span>
-          </label>
-
-          <input
-            name="registrationNumber"
-            placeholder="Company registration / CIN number"
-            value={formData.registrationNumber}
-            onChange={(e) => {
-              const value = e.target.value.toUpperCase();
-              setFormData((prev) => ({
-                ...prev,
-                registrationNumber: value
-              }));
-            }}
-            maxLength={21}
-            required
-          />
-
-          <label>Industry / Domain</label>
-          <input
-            name="industry"
-            placeholder="e.g. Manufacturing, IT Services"
-            value={formData.industry}
-            onChange={handleTextOnly}
           />
 
           <label>Contact Person</label>
@@ -241,7 +315,7 @@ Example: U12345MH2020PLC012345`}
           <input
             type="email"
             name="email"
-            placeholder="name@company.com"
+            placeholder="name@organization.com"
             value={formData.email}
             onChange={handleChange}
             required
@@ -313,7 +387,10 @@ Example: U12345MH2020PLC012345`}
               maxLength={16}
               required
             />
-            <span onClick={() => setShowPassword(!showPassword)}>
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              style={{ cursor: "pointer" }}
+            >
               {showPassword ? "Hide" : "Show"}
             </span>
           </div>
@@ -334,12 +411,42 @@ Example: U12345MH2020PLC012345`}
               onChange={handleChange}
               required
             />
-            <span onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+            <span
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              style={{ cursor: "pointer" }}
+            >
               {showConfirmPassword ? "Hide" : "Show"}
             </span>
           </div>
 
-          <button type="submit">Submit Application</button>
+          <label>Security Verification</label>
+          <div
+            style={{
+              marginTop: "8px",
+              marginBottom: "18px",
+              minHeight: "70px",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <div ref={turnstileRef} />
+          </div>
+
+          {!turnstileLoaded && !turnstileError && (
+            <p style={{ fontSize: "14px", color: "#666", marginTop: "-8px" }}>
+              Loading security verification...
+            </p>
+          )}
+
+          {turnstileError && (
+            <p style={{ fontSize: "14px", color: "#d32f2f", marginTop: "-8px" }}>
+              {turnstileError}
+            </p>
+          )}
+
+          <button type="submit" disabled={submitting || !turnstileLoaded}>
+            {submitting ? "Submitting..." : "Submit Application"}
+          </button>
         </form>
 
         <div className="auth-helper">
