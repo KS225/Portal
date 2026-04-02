@@ -61,3 +61,28 @@ input {
   display: flex;
   flex-direction: column;
 }
+
+/* ================= PROFILE IMAGE ================= */
+
+.profile-image-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.profile-image {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 1px solid #e5e5e5;
+  background: #fafafa;
+  padding: 8px;
+}
+
+/* Optional: file input styling (only inside profile card) */
+.profile-card input[type="file"] {
+  margin-top: 10px;
+  border: none;
+  background: transparent;
+}

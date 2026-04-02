@@ -24,7 +24,6 @@ export const initDatabase = async () => {
         is_verified BOOLEAN DEFAULT FALSE,
         is_temp_password BOOLEAN DEFAULT FALSE,
         is_active BOOLEAN DEFAULT TRUE,
-
         otp VARCHAR(10),
         otp_expiry DATETIME,
 
@@ -79,6 +78,7 @@ export const initDatabase = async () => {
 
         referral_name VARCHAR(255),
         other_source VARCHAR(255),
+        profile_picture VARCHAR(255) DEFAULT NULL,
 
         status ENUM('PENDING','VERIFIED','REJECTED') DEFAULT 'PENDING',
 
@@ -137,20 +137,20 @@ export const initDatabase = async () => {
         employee_count INT,
         years_in_business INT,
 
-        status ENUM(
-          'SUBMITTED',
-          'UNDER_REVIEW_OPS',
-          'PRICING_DEFINED',
-          'INVOICE_SENT',
-          'ISSUE_RAISED',
-          'ISSUE_RESOLVED',
-          'ISSUE_REJECTED',
-          'PAID',
-          'AUDITOR_ASSIGNED',
-          'AUDIT_COMPLETED',
-          'FINAL_APPROVED',
-          'CANCELLED'
-        ) DEFAULT 'SUBMITTED',
+    status ENUM(
+  'SUBMITTED',
+  'UNDER_REVIEW_OPS',
+  'PRICING_DEFINED',
+  'INVOICE_SENT',
+  'ISSUE_RAISED',
+  'ISSUE_RESOLVED',
+  'ISSUE_REJECTED',
+  'PAID',
+  'AUDITOR_ASSIGNED',
+  'AUDIT_COMPLETED',
+  'FINAL_APPROVED',
+  'CANCELLED'
+) DEFAULT 'SUBMITTED',
 
         assigned_auditor_id INT,
         assigned_reviewer_id INT,

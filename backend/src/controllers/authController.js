@@ -18,7 +18,10 @@ export const register = async (req, res) => {
       industry,
       contactPerson,
       designation,
-      phone
+      phone,
+      source,
+      referralName,
+      otherSource
     } = req.body;
 
    
@@ -26,7 +29,7 @@ export const register = async (req, res) => {
     // ✅ CHECK EXISTING USER 
 const [existing] = await conn.query(
   "SELECT * FROM users WHERE email = ?",
-  [email]
+  [email?.trim()]
 );
 
 if (existing.length > 0) {
@@ -36,10 +39,10 @@ if (existing.length > 0) {
 
     await conn.query(
       "UPDATE users SET otp = ?, otp_expiry = ? WHERE email = ?",
-      [otp, expiry, email]
+      [otp, expiry, email?.trim()]
     );
 
-    await sendOTP(email, otp);
+    await sendOTP(email?.trim(), otp);
 
     return res.status(200).json({
       message: "OTP resent to your email"
@@ -75,7 +78,7 @@ if (existingReg.length > 0) {
     const [result] = await conn.query(
       `INSERT INTO users (email, password, otp, otp_expiry)
        VALUES (?, ?, ?, ?)`,
-      [email, hashedPassword, otp, expiry]
+      [email?.trim(), hashedPassword, otp, expiry]
     );
 
     const userId = result.insertId;
@@ -91,17 +94,23 @@ if (existingReg.length > 0) {
         designation,
         email,
         phone,
+        source,
+        referral_name,
+        other_source,
         status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
+      ) VALUES (?, ?, ?, ?, ?,?,?,?, ?, ?, ?, 'PENDING')`,
       [
         userId,
         companyName?.trim(),
-        registrationNumber,
+        registrationNumber?.trim(),
         industry || "",
         contactPerson || "",
         designation || "",
-        email,
-        phone || ""
+        email?.trim(),
+        phone || "",
+        source || null,
+        referralName || null,
+        otherSource || null
       ]
     );
 
@@ -109,7 +118,7 @@ if (existingReg.length > 0) {
     await conn.commit();
 
     // ✅ SEND OTP AFTER SUCCESS
-    await sendOTP(email, otp);
+    await sendOTP(email?.trim(), otp);
 
     return res.status(201).json({
       message: "OTP sent successfully",

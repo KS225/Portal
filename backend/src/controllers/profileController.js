@@ -29,17 +29,18 @@ export const getProfile = async (req, res) => {
 
     // 🔹 APPLICANT (COMPANY)
     const [rows] = await db.query(`
-      SELECT 
-        company_name AS companyName,
-        registration_number AS registrationNumber,
-        industry,
-        contact_person AS contactPerson,
-        designation,
-        email,
-        phone
-      FROM companies
-      WHERE user_id = ?
-    `, [userId]);
+  SELECT 
+    company_name AS companyName,
+    registration_number AS registrationNumber,
+    industry,
+    contact_person AS contactPerson,
+    designation,
+    email,
+    phone,
+    profile_picture AS profilePicture
+  FROM companies
+  WHERE user_id = ?
+`, [userId]);
 
     if (rows.length === 0) {
       return res.status(404).json({ message: "No data found" });
@@ -103,6 +104,10 @@ export const updateCompanyProfile = async (req, res) => {
       phone
     } = req.body;
 
+    const profilePicture = req.file
+      ? `/uploads/profile/${req.file.filename}`
+      : null;
+
     await db.query(
       `UPDATE companies SET
         company_name = ?,
@@ -110,7 +115,8 @@ export const updateCompanyProfile = async (req, res) => {
         industry = ?,
         contact_person = ?,
         designation = ?,
-        phone = ?
+        phone = ?,
+        profile_picture = COALESCE(?, profile_picture)
        WHERE user_id = ?`,
       [
         companyName,
@@ -119,17 +125,80 @@ export const updateCompanyProfile = async (req, res) => {
         contactPerson,
         designation,
         phone,
+        profilePicture,
         userId
       ]
     );
 
-    res.json({ message: "Company profile updated successfully" });
+    res.json({
+      message: "Company profile updated successfully",
+      profilePicture
+    });
 
   } catch (err) {
     console.error("Company Update Error:", err);
     res.status(500).json({ message: "Server error" });
   }
-}; 
+};
+
+/* ===============================
+   CHANGE PASSWORD FOR APPLICANT
+================================== */
+
+export const changePassword = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        message: "All fields are required"
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        message: "New passwords do not match"
+      });
+    }
+
+    const bcrypt = (await import("bcryptjs")).default;
+
+    const [users] = await db.query(
+      "SELECT * FROM users WHERE id = ?",
+      [userId]
+    );
+
+    if (!users.length) {
+      return res.status(404).json({
+        message: "User not found"
+      });
+    }
+
+    const user = users[0];
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({
+        message: "Current password is incorrect"
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await db.query(
+      "UPDATE users SET password = ? WHERE id = ?",
+      [hashedPassword, userId]
+    );
+
+    res.json({ message: "Password changed successfully" });
+
+  } catch (err) {
+    console.error("CHANGE PASSWORD ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 /* =========================
    SEND EMAIL OTP

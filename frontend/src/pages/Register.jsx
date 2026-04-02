@@ -18,28 +18,45 @@ function Register() {
     designation: "",
     email: "",
     phone: "",
+    source: "",
+    referralName: "",
+    otherSource: "",
     password: "",
     confirmPassword: ""
   });
 
   /* Generic change handler */
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+      ...(name === "source" && value !== "referral"
+        ? { referralName: "" }
+        : {}),
+      ...(name === "source" && value !== "other"
+        ? { otherSource: "" }
+        : {})
+    }));
   };
 
   /* Text-only fields */
   const handleTextOnly = (e) => {
     const value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
-    setFormData({ ...formData, [e.target.name]: value });
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: value
+    }));
   };
 
   /* Number-only fields */
   const handleNumberOnly = (e) => {
     const value = e.target.value.replace(/\D/g, "");
-    setFormData({ ...formData, [e.target.name]: value });
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: value
+    }));
   };
 
   const cinRegex = /^[LU]{1}[0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/;
@@ -59,6 +76,7 @@ function Register() {
     if (strength <= 2) return "Weak";
     if (strength === 3 || strength === 4) return "Medium";
     if (strength === 5) return "Strong";
+    return "";
   };
 
   const handleSubmit = async (e) => {
@@ -68,6 +86,21 @@ function Register() {
 
     if (!cinRegex.test(cin)) {
       alert("Invalid CIN format.\nExample: U12345MH2020PLC012345");
+      return;
+    }
+
+    if (!formData.source) {
+      alert("Please select a reference source");
+      return;
+    }
+
+    if (formData.source === "referral" && !formData.referralName.trim()) {
+      alert("Please enter referral name");
+      return;
+    }
+
+    if (formData.source === "other" && !formData.otherSource.trim()) {
+      alert("Please enter other source");
       return;
     }
 
@@ -88,41 +121,48 @@ function Register() {
     }
 
     if (
-      formData.password
-        .toLowerCase()
-        .includes(formData.email.toLowerCase())
+      formData.password.toLowerCase().includes(formData.email.toLowerCase())
     ) {
       alert("Password should not contain your email address.");
       return;
     }
 
     try {
-  const res = await fetch("http://localhost:5000/api/auth/register", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ ...formData, registrationNumber: cin })
-  });
+      const payload = {
+        ...formData,
+        registrationNumber: cin,
+        referralName:
+          formData.source === "referral" ? formData.referralName.trim() : "",
+        otherSource:
+          formData.source === "other" ? formData.otherSource.trim() : ""
+      };
 
-  const data = await res.json();
+      const res = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
 
-  if (!res.ok) {
-    alert(data.message || "Registration failed");
-    return;
-  }
+      const data = await res.json();
 
-  alert("OTP sent to your registered email");
+      if (!res.ok) {
+        alert(data.message || "Registration failed");
+        return;
+      }
 
-  navigate("/verify-otp", {
-    state: { email: formData.email }
-  });
+      alert("OTP sent to your registered email");
 
-} catch (error) {
-  console.error("Registration error:", error);
-  alert("Server error. Please try again later.");
-}
+      navigate("/verify-otp", {
+        state: { email: formData.email }
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert("Server error. Please try again later.");
+    }
   };
+
   return (
     <div className="auth-container">
       <div className="auth-inner">
@@ -163,7 +203,10 @@ Example: U12345MH2020PLC012345`}
             value={formData.registrationNumber}
             onChange={(e) => {
               const value = e.target.value.toUpperCase();
-              setFormData({ ...formData, registrationNumber: value });
+              setFormData((prev) => ({
+                ...prev,
+                registrationNumber: value
+              }));
             }}
             maxLength={21}
             required
@@ -213,6 +256,48 @@ Example: U12345MH2020PLC012345`}
             maxLength={10}
           />
 
+          <label>Reference Source</label>
+          <select
+            name="source"
+            value={formData.source}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select source</option>
+            <option value="google">Google</option>
+            <option value="linkedin">LinkedIn</option>
+            <option value="referral">Referral</option>
+            <option value="advertisement">Advertisement</option>
+            <option value="social_media">Social Media</option>
+            <option value="other">Other</option>
+          </select>
+
+          {formData.source === "referral" && (
+            <>
+              <label>Referral Name</label>
+              <input
+                name="referralName"
+                placeholder="Enter referral name"
+                value={formData.referralName}
+                onChange={handleTextOnly}
+                required
+              />
+            </>
+          )}
+
+          {formData.source === "other" && (
+            <>
+              <label>Other Source</label>
+              <input
+                name="otherSource"
+                placeholder="Please specify"
+                value={formData.otherSource}
+                onChange={handleChange}
+                required
+              />
+            </>
+          )}
+
           <label>Password</label>
           <div className="password-field">
             <input
@@ -222,9 +307,7 @@ Example: U12345MH2020PLC012345`}
               value={formData.password}
               onChange={(e) => {
                 handleChange(e);
-                setPasswordStrength(
-                  checkPasswordStrength(e.target.value)
-                );
+                setPasswordStrength(checkPasswordStrength(e.target.value));
               }}
               minLength={8}
               maxLength={16}

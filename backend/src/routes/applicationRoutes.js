@@ -9,6 +9,10 @@ import {
 } from "../controllers/applicationController.js";
 import { upload } from "../middleware/upload.js";
 import { authenticateUser } from "../middleware/authMiddleware.js";
+import { hasPermission, loadPermissions } from "../middleware/hasPermission.js";
+
+
+// ================= POST ROUTE =================
 
 const router = express.Router();
 
@@ -22,8 +26,7 @@ router.get(
 // ================= GET ROUTES =================
 router.get("/my", authenticateUser, getMyApplications);  // ✅ protected
 router.get("/:id", authenticateUser, getApplicationById); // ✅ added auth (important)
-import { hasPermission, loadPermissions } from "../middleware/hasPermission.js";
-// ================= POST ROUTE =================
+
 router.post(
   "/submit",
   authenticateUser,
@@ -33,6 +36,7 @@ router.post(
     { name: "companyProfile" },
     { name: "pitchDeck" },
     { name: "certifications" },
+     { name: "ipProof", maxCount: 20 }  
   ]),
   submitApplication
 );
